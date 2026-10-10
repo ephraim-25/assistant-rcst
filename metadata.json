@@ -1,0 +1,6 @@
+{
+  "name": "RCST - Auditeur Éditorial & Conformité",
+  "description": "Portail officiel d'audit, de contrôle et d'accompagnement éditorial de la Revue Congolaise des Sciences & Technologies (RCST). Évaluation IMRAD, APA 7, bilinguisme et style académique.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
