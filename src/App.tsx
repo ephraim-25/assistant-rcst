@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LoginScreen } from './components/LoginScreen';
 import { Header } from './components/Header';
 import { GeminiPromptInput } from './components/GeminiPromptInput';
 import { EditorialCockpit } from './components/EditorialCockpit';
@@ -8,13 +10,19 @@ import { ApaConverter } from './components/ApaConverter';
 import { AuditReportData } from './types/audit';
 import { AlertCircle, ShieldCheck } from 'lucide-react';
 
-export default function App() {
+function EditorialApp() {
+  const { isAuthenticated, user } = useAuth();
   const [activeTab, setActiveTab] = useState<'audit' | 'constitution' | 'style' | 'apa'>('audit');
   const [report, setReport] = useState<AuditReportData | null>(null);
   const [currentManuscriptText, setCurrentManuscriptText] = useState<string>('');
   const [currentSourceFilename, setCurrentSourceFilename] = useState<string>('Manuscrit_RCST.docx');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Blocage de sécurité : si non authentifié, afficher l'écran de connexion institutionnel
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
 
   const handleRunAudit = async (manuscriptText: string, sourceFilename?: string) => {
     if (!manuscriptText.trim()) return;
@@ -103,6 +111,12 @@ export default function App() {
                 <p className="text-xs sm:text-sm text-slate-400 mt-2">
                   Contrôle de conformité scientifique souverain : Split-Screen interactif, détection des anomalies avec repères numérotés et assistant conversationnel.
                 </p>
+                {user && (
+                  <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-900/80 border border-slate-800 text-[11px] text-slate-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <span>Connecté en tant que <strong className="text-amber-300">{user.name}</strong> ({user.title})</span>
+                  </div>
+                )}
               </div>
 
               {/* Champ de saisie prompt minimaliste */}
@@ -132,5 +146,13 @@ export default function App() {
         </footer>
       )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <EditorialApp />
+    </AuthProvider>
   );
 }
