@@ -5,11 +5,26 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+import sys
+from pathlib import Path
 
-from .config import settings
-from .extractor import extract_text_from_file
-from .audit_service import audit_manuscript_with_ai
-from .schemas import AuditRequest, AuditResponse, TextExtractionResponse
+# Assurer la compatibilité d'import sur Vercel Serverless (@vercel/python)
+_CURRENT_DIR = Path(__file__).resolve().parent
+if str(_CURRENT_DIR) not in sys.path:
+    sys.path.insert(0, str(_CURRENT_DIR))
+if str(_CURRENT_DIR.parent) not in sys.path:
+    sys.path.insert(0, str(_CURRENT_DIR.parent))
+
+try:
+    from .config import settings
+    from .extractor import extract_text_from_file
+    from .audit_service import audit_manuscript_with_ai
+    from .schemas import AuditRequest, AuditResponse, TextExtractionResponse
+except (ImportError, ValueError):
+    from config import settings
+    from extractor import extract_text_from_file
+    from audit_service import audit_manuscript_with_ai
+    from schemas import AuditRequest, AuditResponse, TextExtractionResponse
 
 app = FastAPI(
     title="RCST Editorial Compliance & Audit API",

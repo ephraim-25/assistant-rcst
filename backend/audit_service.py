@@ -4,14 +4,24 @@ from typing import Dict, Any, List
 from google import genai
 from google.genai import types
 
-from .config import settings
-from .prompts import SYSTEM_PROMPT_RCST
-from .schemas import (
-    AuditResponse, SectionsContainer, TitleAndAuthorsAudit,
-    AbstractAndKeywordsAudit, ImradAudit, CitationsAudit,
-    StyleAudit, TablesAndFiguresInfo, MandatoryEndSectionsInfo,
-    EditorialNotes, SampleReformulation, FlaggedCitation
-)
+try:
+    from .config import settings
+    from .prompts import SYSTEM_PROMPT_RCST
+    from .schemas import (
+        AuditResponse, SectionsContainer, TitleAndAuthorsAudit,
+        AbstractAndKeywordsAudit, ImradAudit, CitationsAudit,
+        StyleAudit, TablesAndFiguresInfo, MandatoryEndSectionsInfo,
+        EditorialNotes, SampleReformulation, FlaggedCitation
+    )
+except (ImportError, ValueError):
+    from config import settings
+    from prompts import SYSTEM_PROMPT_RCST
+    from schemas import (
+        AuditResponse, SectionsContainer, TitleAndAuthorsAudit,
+        AbstractAndKeywordsAudit, ImradAudit, CitationsAudit,
+        StyleAudit, TablesAndFiguresInfo, MandatoryEndSectionsInfo,
+        EditorialNotes, SampleReformulation, FlaggedCitation
+    )
 
 def run_local_heuristic_audit(text: str) -> Dict[str, Any]:
     """
