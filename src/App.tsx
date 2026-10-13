@@ -1,29 +1,50 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { GovernanceProvider, useGovernance } from './context/GovernanceContext';
 import { LoginScreen } from './components/LoginScreen';
-import { Header } from './components/Header';
-import { GeminiPromptInput } from './components/GeminiPromptInput';
+import { Sidebar } from './components/Sidebar';
+import { TopBar } from './components/TopBar';
+import { CentralHub } from './components/CentralHub';
 import { EditorialCockpit } from './components/EditorialCockpit';
+import { ReviewerDashboard } from './components/ReviewerDashboard';
+import { AdminGovernanceDashboard } from './components/AdminGovernanceDashboard';
+import { UserProfileModal } from './components/UserProfileModal';
 import { ConstitutionGuide } from './components/ConstitutionGuide';
 import { StyleReformulator } from './components/StyleReformulator';
 import { ApaConverter } from './components/ApaConverter';
 import { AuditReportData } from './types/audit';
-import { AlertCircle, ShieldCheck } from 'lucide-react';
+import { AuditHistoryItem } from './types/governance';
+import { AlertCircle } from 'lucide-react';
 
-function EditorialApp() {
+export type AppView = 
+  | 'hub' 
+  | 'cockpit' 
+  | 'reviewer-dashboard' 
+  | 'admin-dashboard' 
+  | 'constitution' 
+  | 'style' 
+  | 'apa';
+
+function EditorialEnterpriseApp() {
   const { isAuthenticated, user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'audit' | 'constitution' | 'style' | 'apa'>('audit');
+  const { addAuditToHistory } = useGovernance();
+
+  const [activeView, setActiveView] = useState<AppView>('hub');
   const [report, setReport] = useState<AuditReportData | null>(null);
   const [currentManuscriptText, setCurrentManuscriptText] = useState<string>('');
   const [currentSourceFilename, setCurrentSourceFilename] = useState<string>('Manuscrit_RCST.docx');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
 
   // Blocage de sécurité : si non authentifié, afficher l'écran de connexion institutionnel
   if (!isAuthenticated) {
     return <LoginScreen />;
   }
 
+  /**
+   * Lancement d'un audit de manuscrit via le backend FastAPI
+   */
   const handleRunAudit = async (manuscriptText: string, sourceFilename?: string) => {
     if (!manuscriptText.trim()) return;
     setIsLoading(true);
@@ -44,7 +65,7 @@ function EditorialApp() {
       }
 
       const data = await response.json();
-      setReport({
+      const enrichedReport: AuditReportData = {
         ...data,
         referenceId: `RCST-AUDIT-2026-${Math.floor(1000 + Math.random() * 9000)}`,
         timestamp: new Date().toLocaleDateString('fr-FR', {
@@ -52,7 +73,23 @@ function EditorialApp() {
           month: 'long',
           year: 'numeric',
         }),
-      });
+      };
+
+      setReport(enrichedReport);
+
+      // Ajouter automatiquement dans l'historique de gouvernance
+      const derivedTitle = fname.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
+      addAuditToHistory(
+        derivedTitle,
+        fname,
+        manuscriptText,
+        enrichedReport,
+        user?.id || 'usr-anon',
+        user?.name || 'Éditeur Anonyme'
+      );
+
+      // Basculer immédiatement vers le Cockpit Éditorial Split-Screen
+      setActiveView('cockpit');
     } catch (err: any) {
       console.error('Erreur audit:', err);
       setError(
@@ -63,88 +100,159 @@ function EditorialApp() {
     }
   };
 
+  /**
+   * Recharge un audit directement depuis l'historique dans la Sidebar
+   */
+  const handleLoadAuditFromHistory = (item: AuditHistoryItem) => {
+    setCurrentManuscriptText(item.manuscriptText);
+    setCurrentSourceFilename(item.sourceFilename);
+    setReport(item.report);
+    setActiveView('cockpit');
+  };
+
   const handleReset = () => {
     setReport(null);
     setCurrentManuscriptText('');
+    setActiveView('hub');
+  };
+
+  const handleNewAudit = () => {
+    setReport(null);
+    setCurrentManuscriptText('');
+    setActiveView('hub');
   };
 
   return (
-    <div className="min-h-screen bg-[#0e1015] text-slate-100 flex flex-col font-sans selection:bg-amber-500/30 selection:text-amber-200">
-      <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+    <div className="flex h-screen w-screen overflow-hidden bg-[#07090e] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
+      {/* ─── VOLET LATÉRAL DÉROULANT & RÉTRACTABLE (STYLE GEMINI/CHATGPT) ─── */}
+      <Sidebar
+        activeView={activeView}
+        setActiveView={setActiveView}
+        hasActiveReport={!!report}
+        onNewAudit={handleNewAudit}
+        onLoadAuditFromHistory={handleLoadAuditFromHistory}
+        onOpenProfile={() => setIsProfileModalOpen(true)}
+      />
 
-      {/* Si nous sommes sur l'onglet audit et qu'un rapport est actif, plein écran pour le Cockpit Éditorial */}
-      {activeTab === 'audit' && report ? (
-        <EditorialCockpit
-          manuscriptText={currentManuscriptText}
-          sourceFilename={currentSourceFilename}
-          report={report}
-          onReset={handleReset}
+      {/* ─── CONTENU PRINCIPAL : TOPBAR + VUES DYNAMIQUES ─── */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+        {/* Lueur d'ambiance cuivrée discrète sur le quadrant supérieur droit */}
+        <div 
+          className="absolute top-0 right-0 w-[550px] h-[400px] pointer-events-none opacity-40 blur-3xl z-0"
+          style={{
+            background: 'radial-gradient(circle at 75% 20%, rgba(180, 83, 9, 0.22) 0%, rgba(147, 51, 234, 0.08) 40%, transparent 70%)'
+          }}
         />
-      ) : (
-        <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 flex flex-col">
+
+        {/* Barre supérieure unifiée */}
+        <TopBar
+          activeView={activeView}
+          setActiveView={setActiveView}
+          hasActiveReport={!!report}
+          onOpenProfile={() => setIsProfileModalOpen(true)}
+        />
+
+        {/* Zone centrale d'affichage */}
+        <main className="flex-1 overflow-y-auto relative z-10 flex flex-col">
           {error && (
-            <div className="mb-6 p-4 rounded-xl bg-red-950/60 border border-red-800/80 text-red-200 text-sm flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-                <span>{error}</span>
+            <div className="max-w-4xl mx-auto w-full mt-4 px-4">
+              <div className="p-3.5 rounded-xl bg-red-950/70 border border-red-800/80 text-red-200 text-xs flex items-center justify-between shadow-lg">
+                <div className="flex items-center gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                  <span>{error}</span>
+                </div>
+                <button
+                  onClick={() => setError(null)}
+                  className="text-xs px-2.5 py-1 rounded bg-red-900/60 hover:bg-red-900 text-red-100 cursor-pointer"
+                >
+                  Fermer
+                </button>
               </div>
+            </div>
+          )}
+
+          {/* VUE 1 : CENTRAL HUB & PROMPT CENTER (LANDING PAGE) */}
+          {activeView === 'hub' && (
+            <CentralHub
+              onAudit={handleRunAudit}
+              isLoading={isLoading}
+              onNavigateTab={(tab) => setActiveView(tab as AppView)}
+              onLoadAuditFromHistory={handleLoadAuditFromHistory}
+            />
+          )}
+
+          {/* VUE 2 : COCKPIT ÉDITORIAL SPLIT-SCREEN */}
+          {activeView === 'cockpit' && report && (
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
+              <EditorialCockpit
+                manuscriptText={currentManuscriptText}
+                sourceFilename={currentSourceFilename}
+                report={report}
+                onReset={handleReset}
+              />
+            </div>
+          )}
+
+          {/* Si cockpit sélectionné mais aucun rapport en cours */}
+          {activeView === 'cockpit' && !report && (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400">
+                <AlertCircle className="w-8 h-8 text-amber-400" />
+              </div>
+              <h2 className="text-lg font-bold text-white">Aucun rapport actif dans le Cockpit</h2>
+              <p className="text-xs text-slate-400 max-w-md">
+                Sélectionnez un audit dans l'historique latéral ou soumettez un nouveau manuscrit depuis l'accueil.
+              </p>
               <button
-                onClick={() => setError(null)}
-                className="text-xs px-2.5 py-1 rounded bg-red-900/60 hover:bg-red-900 text-red-100 cursor-pointer"
+                onClick={() => setActiveView('hub')}
+                className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs"
               >
-                Fermer
+                Aller au Prompt Center
               </button>
             </div>
           )}
 
-          {activeTab === 'audit' && !report && (
-            <div className="flex flex-col items-center justify-center my-auto py-8">
-              {/* En-tête sobre style Gemini */}
-              <div className="text-center mb-8 max-w-lg">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300 text-xs font-medium mb-3">
-                  <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
-                  <span>Conseil Scientifique National • RDC</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-serif font-medium text-white tracking-tight">
-                  Cockpit Éditorial & Audit RCST
-                </h1>
-                <p className="text-xs sm:text-sm text-slate-400 mt-2">
-                  Contrôle de conformité scientifique souverain : Split-Screen interactif, détection des anomalies avec repères numérotés et assistant conversationnel.
-                </p>
-                {user && (
-                  <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-900/80 border border-slate-800 text-[11px] text-slate-400">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span>Connecté en tant que <strong className="text-amber-300">{user.name}</strong> ({user.title})</span>
-                  </div>
-                )}
-              </div>
+          {/* VUE 3 : TABLEAU DE BORD REVIEWER (ESPACE ÉDITEUR) */}
+          {activeView === 'reviewer-dashboard' && (
+            <ReviewerDashboard
+              onStartAudit={handleRunAudit}
+              onOpenProfile={() => setIsProfileModalOpen(true)}
+            />
+          )}
 
-              {/* Champ de saisie prompt minimaliste */}
-              <GeminiPromptInput onAudit={handleRunAudit} isLoading={isLoading} />
+          {/* VUE 4 : TABLEAU DE BORD ADMINISTRATEUR (GOUVERNANCE SIGC & IA) */}
+          {activeView === 'admin-dashboard' && (
+            <AdminGovernanceDashboard />
+          )}
+
+          {/* VUE 5 : CONSTITUTION RCST */}
+          {activeView === 'constitution' && (
+            <div className="max-w-5xl w-full mx-auto px-6 py-8">
+              <ConstitutionGuide />
             </div>
           )}
 
-          {activeTab === 'constitution' && <ConstitutionGuide />}
-          {activeTab === 'style' && <StyleReformulator />}
-          {activeTab === 'apa' && <ApaConverter />}
-        </main>
-      )}
-
-      {/* Footer sobre affiché uniquement hors du Cockpit plein écran */}
-      {(!report || activeTab !== 'audit') && (
-        <footer className="border-t border-white/5 bg-[#0b0c10] text-slate-500 py-4 text-xs">
-          <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
-            <p>© 2026 Revue Congolaise des Sciences & Technologies (RCST). Tous droits réservés.</p>
-            <div className="flex items-center gap-4 text-[11px] text-slate-400">
-              <span>Normes IMRAD</span>
-              <span>•</span>
-              <span>APA 7</span>
-              <span>•</span>
-              <span>Conseil Scientifique National</span>
+          {/* VUE 6 : ATELIER STYLE IMPERSONNEL */}
+          {activeView === 'style' && (
+            <div className="max-w-5xl w-full mx-auto px-6 py-8">
+              <StyleReformulator />
             </div>
-          </div>
-        </footer>
-      )}
+          )}
+
+          {/* VUE 7 : VÉRIFICATEUR APA 7 */}
+          {activeView === 'apa' && (
+            <div className="max-w-5xl w-full mx-auto px-6 py-8">
+              <ApaConverter />
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* ─── MODALE MON PROFIL ÉDITORIAL ─── */}
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
     </div>
   );
 }
@@ -152,7 +260,9 @@ function EditorialApp() {
 export default function App() {
   return (
     <AuthProvider>
-      <EditorialApp />
+      <GovernanceProvider>
+        <EditorialEnterpriseApp />
+      </GovernanceProvider>
     </AuthProvider>
   );
 }
