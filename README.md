@@ -44,3 +44,16 @@ npm run dev
 ```
 Accessible sur `http://localhost:3000` ou `http://localhost:5173`.
 Le frontend proxie automatiquement les requêtes `/api/*` vers le serveur FastAPI ou le serveur local unifié.
+
+---
+
+### 3. BASE DE DONNÉES (SQLite en local, PostgreSQL en production)
+
+- **Développement / tests** : SQLite (fichier `backend/rcst_data.db`, ignoré par Git). Rien à configurer.
+- **Production (Vercel)** : définir `DATABASE_URL` (PostgreSQL, ex. Supabase, pooler « Transaction » port 6543).
+  Le disque des fonctions Vercel est éphémère : l'application **refuse de démarrer** en `ENVIRONMENT=production` sans `DATABASE_URL`.
+- Variables à définir dans Vercel : `ENVIRONMENT=production`, `JWT_SECRET_KEY`, `DATABASE_URL`, `CORS_ORIGINS`,
+  `GEMINI_API_KEY`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` (premier administrateur, créé au démarrage).
+- Reprise de données SQLite existantes :
+  `DATABASE_URL="postgresql://..." python scripts/migrate_sqlite_to_postgres.py backend/rcst_data.db` (idempotent).
+- Lancer les tests sur PostgreSQL : `DATABASE_URL="postgresql://..." pytest`.

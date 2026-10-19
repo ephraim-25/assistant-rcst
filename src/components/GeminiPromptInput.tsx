@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, ArrowUp, FileText, X, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { SAMPLE_MANUSCRIPTS } from '../data/samples';
@@ -41,7 +42,7 @@ export const GeminiPromptInput: React.FC<GeminiPromptInputProps> = ({ onAudit, i
       } else if (ext === 'docx' || ext === 'pdf' || ext === 'doc') {
         const formData = new FormData();
         formData.append('file', file);
-        const res = await fetch('/api/extract-file', {
+        const res = await apiFetch('/api/extract-file', {
           method: 'POST',
           body: formData,
         });

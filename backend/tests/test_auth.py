@@ -309,3 +309,25 @@ class TestNoSelfPromotion:
         token = _login(email, "AdminPass123!")
         assert client.get("/api/admin/users",
                           headers={"Authorization": f"Bearer {token}"}).status_code == 200
+
+
+class TestUserStatus:
+    def test_admin_can_suspend_and_reactivate(self):
+        admin_email, user_email = _unique_email(), _unique_email()
+        _register(admin_email, role="ADMIN")
+        admin_h = {"Authorization": f"Bearer {_login(admin_email)}"}
+        uid = _register(user_email)["user_id"]
+        r = client.put(f"/api/admin/users/{uid}/status", json={"is_active": False}, headers=admin_h)
+        assert r.status_code == 200
+        assert client.post("/api/auth/login", json={"email": user_email, "password": "TestPass123!"}).status_code in (400, 401, 403)
+        assert client.put(f"/api/admin/users/{uid}/status", json={"is_active": True}, headers=admin_h).status_code == 200
+        _login(user_email)
+
+    def test_admin_cannot_suspend_self_and_reviewer_forbidden(self):
+        admin_email, rev_email = _unique_email(), _unique_email()
+        admin_id = _register(admin_email, role="ADMIN")["user_id"]
+        admin_h = {"Authorization": f"Bearer {_login(admin_email)}"}
+        assert client.put(f"/api/admin/users/{admin_id}/status", json={"is_active": False}, headers=admin_h).status_code == 400
+        _register(rev_email)
+        rev_h = {"Authorization": f"Bearer {_login(rev_email)}"}
+        assert client.put(f"/api/admin/users/{admin_id}/status", json={"is_active": False}, headers=rev_h).status_code == 403

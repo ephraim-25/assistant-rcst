@@ -1,3 +1,4 @@
+import { apiFetch } from './lib/api';
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { GovernanceProvider, useGovernance } from './context/GovernanceContext';
@@ -26,7 +27,7 @@ export type AppView =
   | 'apa';
 
 function EditorialEnterpriseApp() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, authReady, user } = useAuth();
   const { addAuditToHistory } = useGovernance();
 
   const [activeView, setActiveView] = useState<AppView>('hub');
@@ -38,6 +39,9 @@ function EditorialEnterpriseApp() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
 
   // Blocage de sécurité : si non authentifié, afficher l'écran de connexion institutionnel
+  if (!authReady) {
+    return null; // vérification de la session auprès du serveur en cours
+  }
   if (!isAuthenticated) {
     return <LoginScreen />;
   }
@@ -54,7 +58,7 @@ function EditorialEnterpriseApp() {
     setCurrentSourceFilename(fname);
 
     try {
-      const response = await fetch('/api/audit', {
+      const response = await apiFetch('/api/audit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ manuscriptText, sourceFilename: fname }),

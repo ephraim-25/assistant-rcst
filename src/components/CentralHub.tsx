@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Plus, 
@@ -159,7 +160,7 @@ export const CentralHub: React.FC<CentralHubProps> = ({
       } else if (ext === 'docx' || ext === 'pdf' || ext === 'doc') {
         const formData = new FormData();
         formData.append('file', file);
-        const res = await fetch('/api/extract-file', {
+        const res = await apiFetch('/api/extract-file', {
           method: 'POST',
           body: formData,
         });

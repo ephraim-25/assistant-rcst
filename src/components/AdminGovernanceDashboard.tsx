@@ -56,7 +56,7 @@ export const AdminGovernanceDashboard: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   const [newUserName, setNewUserName] = useState<string>('');
   const [newUserEmail, setNewUserEmail] = useState<string>('');
-  const [newUserPassword, setNewUserPassword] = useState<string>('password123');
+  const [newUserPassword, setNewUserPassword] = useState<string>('');
   const [newUserRole, setNewUserRole] = useState<UserRole>('reviewer');
   const [newUserAffiliation, setNewUserAffiliation] = useState<string>('Université de Kinshasa');
   const [newUserSpecialty, setNewUserSpecialty] = useState<string>('Sciences Appliquées');
@@ -123,7 +123,7 @@ export const AdminGovernanceDashboard: React.FC = () => {
       setIsCreateModalOpen(false);
       setNewUserName('');
       setNewUserEmail('');
-      setNewUserPassword('password123');
+      setNewUserPassword('');
     } else {
       setCreateFeedback(res.error || 'Erreur lors de la création');
     }

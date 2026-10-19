@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import React, { useState } from 'react';
 import { Award, Check, Copy, RefreshCw, BookMarked, ExternalLink, AlertCircle } from 'lucide-react';
 
@@ -34,7 +35,7 @@ export const ApaConverter: React.FC = () => {
     setIsLoading(true);
     setResult(null);
     try {
-      const response = await fetch('/api/convert-apa', {
+      const response = await apiFetch('/api/convert-apa', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ referenceString: refInput }),

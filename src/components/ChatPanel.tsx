@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Send, Loader2, Bot, User, X, Sparkles, RotateCcw, Copy, Check,
@@ -106,7 +107,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await apiFetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
