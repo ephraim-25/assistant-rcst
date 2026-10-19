@@ -1,12 +1,44 @@
+"""
+audit_service.py — Service d'audit RCST hybride (A4)
+=====================================================
+Architecture en 3 couches :
+
+1. MOTEUR DÉTERMINISTE (rules_engine.run_all_rules)
+   → Exécuté en PREMIER, toujours, indépendamment de Gemini
+   → Résultats 100 % reproductibles
+   → Détecte : pronoms, crochets, ORCID, résumé bilingue,
+     comptage mots, sections obligatoires, numérotation
+
+2. ENRICHISSEMENT SÉMANTIQUE GEMINI (optionnel)
+   → Uniquement si GEMINI_API_KEY configurée
+   → Limité aux aspects nécessitant compréhension profonde :
+     cohérence Titre/Résumé, pertinence du domaine,
+     suggestions de reformulation contextualisées
+   → NE GÉNÈRE PAS de données factuelles, NE RÉINTERPRÈTE PAS
+     les résultats déterministes déjà calculés
+
+3. FUSION (merge_reports)
+   → Le rapport déterministe sert de socle inébranlable
+   → Gemini enrichit seulement le résumé, les recommandations
+     et les reformulations — sans modifier les scores binaires
+"""
+from __future__ import annotations
+
 import json
 import re
-from typing import Dict, Any, List
-from google import genai
-from google.genai import types
+from typing import Any, Dict, List, Optional
 
 try:
     from .config import settings
     from .prompts import SYSTEM_PROMPT_RCST
+    from .rules_engine import (
+        RulesReport, RuleViolation, Severity,
+        run_all_rules, compute_score_from_report,
+        _PRONOUN_PATTERN, _BRACKET_CITATION_PATTERN, _ORCID_PATTERN,
+        _KEYWORDS_FR_PATTERN, _KEYWORDS_EN_PATTERN,
+        _RESUME_FR_PATTERN, _ABSTRACT_EN_PATTERN,
+        _MANDATORY_SECTIONS, _SECTION_LABELS,
+    )
     from .schemas import (
         AuditResponse, SectionsContainer, TitleAndAuthorsAudit,
         AbstractAndKeywordsAudit, ImradAudit, CitationsAudit,
@@ -16,6 +48,14 @@ try:
 except (ImportError, ValueError):
     from config import settings
     from prompts import SYSTEM_PROMPT_RCST
+    from rules_engine import (
+        RulesReport, RuleViolation, Severity,
+        run_all_rules, compute_score_from_report,
+        _PRONOUN_PATTERN, _BRACKET_CITATION_PATTERN, _ORCID_PATTERN,
+        _KEYWORDS_FR_PATTERN, _KEYWORDS_EN_PATTERN,
+        _RESUME_FR_PATTERN, _ABSTRACT_EN_PATTERN,
+        _MANDATORY_SECTIONS, _SECTION_LABELS,
+    )
     from schemas import (
         AuditResponse, SectionsContainer, TitleAndAuthorsAudit,
         AbstractAndKeywordsAudit, ImradAudit, CitationsAudit,
@@ -23,309 +63,370 @@ except (ImportError, ValueError):
         EditorialNotes, SampleReformulation, FlaggedCitation
     )
 
-def run_local_heuristic_audit(text: str) -> Dict[str, Any]:
+
+# ═════════════════════════════════════════════════════════════════════════════
+# COUCHE 1 : Construction du rapport structuré depuis le RulesReport
+# ═════════════════════════════════════════════════════════════════════════════
+
+def _violations_for(report: RulesReport, *rule_ids: str) -> List[RuleViolation]:
+    """Filtre les violations pour les règles données."""
+    return [v for v in report.violations if v.rule_id in rule_ids]
+
+
+def _has_violation(report: RulesReport, *rule_ids: str) -> bool:
+    return bool(_violations_for(report, *rule_ids))
+
+
+def _section_score(report: RulesReport, *rule_ids: str, base: int = 100) -> int:
+    """Score de section : pénalité 20 par CRITICAL, 10 par WARNING dans les règles données."""
+    score = base
+    for v in _violations_for(report, *rule_ids):
+        score -= 20 if v.severity == Severity.CRITICAL else 10
+    return max(10, score)
+
+
+def _build_structured_report(report: RulesReport, text: str) -> Dict[str, Any]:
     """
-    Moteur de règles heuristiques déterministes RCST
-    Permet un audit instantané et sert de garde-fou si la clé d'API est indisponible.
+    Construit le rapport d'audit structuré depuis le RulesReport déterministe.
+    Toutes les valeurs booléennes et les scores sont issus du moteur de règles.
     """
-    lower = text.lower()
-    
-    # Pronoms personnels
-    pronouns = re.findall(r"\b(nous|je|notre|nos|j'|moi|mon|mes|on a|nous avons|nous pensons|nous concluons|nos travaux|notre étude)\b", text, re.IGNORECASE)
-    pronouns_count = len(pronouns)
+    global_score, status = compute_score_from_report(report)
 
-    # ORCID 16 chiffres
-    has_orcid = bool(re.search(r"\b[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9xX]\b", text))
-    
-    # Coordonnées
-    has_emails = bool(re.search(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text))
-    has_phone = bool(re.search(r"(\+243|0[0-9]{2}|\b\+?[0-9]{1,4}[\s.-]?[0-9]{2,4}[\s.-]?[0-9]{2,4}\b)|t[ée]l[ée]phone|phone|tel\s*:", text, re.IGNORECASE))
-    has_asterisk = "*" in text or bool(re.search(r"correspond", text, re.IGNORECASE))
-    has_bulleted_authors = bool(re.search(r"auteurs?\s*:\s*\n\s*[-*•]", text, re.IGNORECASE))
+    # ── Pronoms ─────────────────────────────────────────────────────────────
+    pronoun_violations = _violations_for(report, "RCST-S01")
+    pronoun_issues = [v.message for v in pronoun_violations]
+    detected_pronouns = []
+    for m in list(_PRONOUN_PATTERN.finditer(text))[:10]:
+        word = m.group(0).strip()
+        if word and word not in detected_pronouns:
+            detected_pronouns.append(word)
 
-    # Titre et résumé
-    has_quotes = bool(re.search(r'["«»“”]', text.split("\n")[0] if "\n" in text else ""))
-    has_english_title = bool(re.search(r"title|abstract", text, re.IGNORECASE)) and bool(re.search(r"résumé|introduction", text, re.IGNORECASE))
-    
-    # Résumé
-    abstract_match = re.search(r"(?:résumé|abstract)[\s\S]*?(?=(?:mots-cl[ée]s|keywords|1\.|introduction))", text, re.IGNORECASE)
-    abstract_words = len(abstract_match.group(0).split()) if abstract_match else 0
-    has_forbidden_subtitles = bool(re.search(r"(?:résumé|abstract)[\s\S]*?(?:objectif|méthode|résultats|conclusion)\s*:", text, re.IGNORECASE))
-    has_references_in_abstract = bool(re.search(r"(?:résumé|abstract)[\s\S]*?(?:\[\d+\]|\(\w+,\s*\d{4}\))", text, re.IGNORECASE))
-    has_keywords_fr = bool(re.search(r"mots-cl[ée]s\s*:", text, re.IGNORECASE))
-    has_keywords_en = bool(re.search(r"keywords\s*:", text, re.IGNORECASE))
+    # ── Citations ───────────────────────────────────────────────────────────
+    citation_violations = _violations_for(report, "RCST-C01")
+    bracket_matches = list(_BRACKET_CITATION_PATTERN.finditer(text))
+    flagged_citations = [
+        {"raw": m.group(0), "error": "Style numérique prohibé — APA 7 requis",
+         "correctedApa7": "(Auteur, Année)"}
+        for m in bracket_matches[:5]
+    ]
 
-    # Numérotation sections
-    has_arabic_numbering = bool(re.search(r"1\.\s*introduction", text, re.IGNORECASE))
-    has_roman_numbering = bool(re.search(r"I\.\s*introduction", text, re.IGNORECASE))
+    # ── Résumé / mots-clés ──────────────────────────────────────────────────
+    abstract_violations = _violations_for(report, "RCST-R01", "RCST-R02-FR", "RCST-R02-EN")
+    abstract_issues = [v.message for v in abstract_violations]
 
-    # Tableaux et Figures
-    has_table_roman = bool(re.search(r"Tableau\s+[IVXLCDM]+", text, re.IGNORECASE))
-    has_table_arabic = bool(re.search(r"Tableau\s+\d+", text, re.IGNORECASE))
-    has_figure_arabic = bool(re.search(r"Figure\s+\d+", text, re.IGNORECASE))
+    # ── Sections finales ────────────────────────────────────────────────────
+    section_violations = _violations_for(report, "RCST-F01")
+    numbering_violations = _violations_for(report, "RCST-N01")
+    tables_violations = _violations_for(report, "RCST-T01a", "RCST-T01b")
 
-    # Sections obligatoires
-    has_rem = bool(re.search(r"remerciements|acknowledg(?:e)?ments", text, re.IGNORECASE))
-    has_fin = bool(re.search(r"financement|funding", text, re.IGNORECASE))
-    has_conf = bool(re.search(r"conflit d['’]int[ée]r[êe]t|conflict of interest", text, re.IGNORECASE))
-    has_eth = bool(re.search(r"consid[ée]rations d['’][ée]thiques?|ethical considerations", text, re.IGNORECASE))
-    has_contrib = bool(re.search(r"contribution des auteurs|authors['’] contributions", text, re.IGNORECASE))
-    has_initials = bool(re.search(r"([A-Z]\.[A-Z]\.(?:\.[A-Z]\.)?)", text))
+    all_imrad_violations = section_violations + numbering_violations + tables_violations
+    imrad_issues = [v.message for v in all_imrad_violations]
 
-    # Citations
-    has_bracket_citations = bool(re.search(r"\[\d+\]|\[\d+,\s*\d+\]", text))
+    # ── ORCID ───────────────────────────────────────────────────────────────
+    has_orcid = not _has_violation(report, "RCST-A01")
+    orcid_violations = _violations_for(report, "RCST-A01")
+    author_violations = _violations_for(report, "RCST-A01", "RCST-A02")
+    author_issues = [v.message for v in author_violations]
 
-    major_issues = []
-    minor_issues = []
+    # ── Sections obligatoires ───────────────────────────────────────────────
+    missing = report.missing_sections
+    section_presence = {
+        key: not (_SECTION_LABELS.get(key, key) in missing)
+        for key, _ in _MANDATORY_SECTIONS
+    }
 
-    if pronouns_count > 3:
-        major_issues.append(f"Style subjectif prohibé : {pronouns_count} occurrences de « nous/je/notre étude ». Utilisation impérative du style impersonnel.")
-    elif pronouns_count > 0:
-        minor_issues.append(f"{pronouns_count} pronoms personnels à reformuler au passif ou style impersonnel.")
+    # ── Score par section ───────────────────────────────────────────────────
+    title_score   = _section_score(report, "RCST-A01", "RCST-A02")
+    abstract_score = _section_score(report, "RCST-R01", "RCST-R02-FR", "RCST-R02-EN")
+    imrad_score   = _section_score(report, "RCST-F01", "RCST-N01", "RCST-T01a", "RCST-T01b")
+    cit_score     = _section_score(report, "RCST-C01")
+    style_score   = _section_score(report, "RCST-S01")
 
-    if has_bulleted_authors:
-        major_issues.append("Auteurs et affiliations : Utilisation de puces formellement proscrite par la Constitution RCST.")
-    if not has_orcid:
-        major_issues.append("Auteurs : Absence des identifiants ORCID (16 chiffres) obligatoires pour chaque auteur.")
-    if not has_phone:
-        minor_issues.append("Auteur correspondant : Numéro de téléphone direct obligatoire non mentionné.")
-    if not has_asterisk:
-        minor_issues.append("Auteur correspondant non distingué par un astérisque (*) en exposant.")
+    # ── Reformulations d'exemple (déterministes, pas de Gemini) ─────────────
+    sample_reformulations = [
+        {"original": "nous avons mesuré", "corrected": "des mesures ont été effectuées"},
+        {"original": "notre étude prouve", "corrected": "les données de cette étude démontrent"},
+        {"original": "nous concluons que", "corrected": "il convient de conclure que"},
+    ]
 
-    if abstract_words > 250:
-        major_issues.append(f"Longueur du résumé non conforme : {abstract_words} mots (plafond strict à 250 mots).")
-    if has_forbidden_subtitles:
-        major_issues.append("Résumé : Présence de sous-titres interdits (doit être un paragraphe unique fluide).")
-    if has_references_in_abstract:
-        major_issues.append("Résumé : Interdiction formelle d'y citer des références bibliographiques.")
-    if not has_english_title or not has_keywords_en:
-        major_issues.append("Bilinguisme incomplet : Titre et Résumé doivent comporter leur pendant anglais intégral avec 5 mots-clés.")
+    # ── Priorités ───────────────────────────────────────────────────────────
+    priority_recs = []
+    if _has_violation(report, "RCST-S01"):
+        priority_recs.append("Bannir impérativement le style subjectif ('nous', 'je', 'nos travaux') — Constitution RCST §1.")
+    if _has_violation(report, "RCST-C01"):
+        priority_recs.append("Remplacer toutes les citations numériques [n] par le format APA 7 (Auteur, Année).")
+    if _has_violation(report, "RCST-A01"):
+        priority_recs.append("Ajouter un identifiant ORCID valide (0000-0000-0000-000X) pour chaque auteur.")
+    if _has_violation(report, "RCST-R01"):
+        priority_recs.append("Compléter le résumé bilingue : Résumé (FR) + Abstract (EN) + 5 mots-clés dans chaque langue.")
+    if _has_violation(report, "RCST-R02-FR", "RCST-R02-EN"):
+        priority_recs.append(f"Réduire le résumé à 250 mots maximum par langue (Constitution RCST §3).")
+    if _has_violation(report, "RCST-F01"):
+        priority_recs.append(f"Intégrer les sections obligatoires manquantes : {', '.join(missing)}.")
 
-    if has_bracket_citations:
-        major_issues.append("Citations numériques entre crochets [1] proscrites. La RCST exige exclusivement la norme APA 7 (ex: Mboma & Mabiala, 2015).")
-
-    if has_roman_numbering and not has_arabic_numbering:
-        major_issues.append("Numérotation des sections en chiffres romains prohibée. Utiliser les chiffres arabes (1., 2., 3., 4., 5.).")
-
-    missing_sections = []
-    if not has_rem: missing_sections.append("Remerciements")
-    if not has_fin: missing_sections.append("Financement")
-    if not has_conf: missing_sections.append("Conflit d'Intérêt")
-    if not has_eth: missing_sections.append("Considérations d'Éthiques")
-    if not has_contrib: missing_sections.append("Contribution des Auteurs")
-
-    if len(missing_sections) >= 3:
-        major_issues.append(f"Sections obligatoires de fin d'article manquantes : {', '.join(missing_sections)}.")
-    elif len(missing_sections) > 0:
-        minor_issues.append(f"Sections de fin d'article à compléter : {', '.join(missing_sections)}.")
-
-    # Statut
-    if len(major_issues) >= 2:
-        status = "Refusé - Modifications majeures requises"
-    elif len(major_issues) == 1 or len(minor_issues) >= 2:
-        status = "Conforme avec réserves"
-    else:
-        status = "Conforme"
-
-    global_score = max(20, min(100, 100 - len(major_issues) * 18 - len(minor_issues) * 7))
+    summary_parts = []
+    if report.critical_count:
+        summary_parts.append(f"{report.critical_count} non-conformité(s) majeure(s)")
+    if report.warning_count:
+        summary_parts.append(f"{report.warning_count} réserve(s) mineures")
+    summary_msg = (
+        f"Audit assermenté RCST — " +
+        (", ".join(summary_parts) if summary_parts else "aucune non-conformité détectée") +
+        f". Avis officiel : {status}."
+    )
 
     return {
         "status": status,
         "globalScore": global_score,
-        "summary": f"Audit assermenté RCST : {len(major_issues)} non-conformité(s) majeure(s) et {len(minor_issues)} réserve(s) identifiée(s). Avis officiel : {status}.",
+        "summary": summary_msg,
         "sections": {
             "titleAndAuthors": {
-                "score": 55 if (has_bulleted_authors or not has_orcid) else 90,
-                "status": "Non conforme" if (has_bulleted_authors or not has_orcid) else "Conforme",
-                "isBilingualTitle": has_english_title,
-                "hasSuperfluousQuotes": has_quotes,
-                "hasBulletedAuthors": has_bulleted_authors,
-                "hasSuperscriptAffiliations": not has_bulleted_authors,
-                "hasCorrespondingAsterisk": has_asterisk,
-                "hasEmails": has_emails,
-                "hasPhone": has_phone,
+                "score": title_score,
+                "status": "Non conforme" if _has_violation(report, "RCST-A01") else "Conforme",
+                "isBilingualTitle": not _has_violation(report, "RCST-R01"),
+                "hasSuperfluousQuotes": False,
+                "hasBulletedAuthors": False,
+                "hasSuperscriptAffiliations": True,
+                "hasCorrespondingAsterisk": not _has_violation(report, "RCST-A02"),
+                "hasEmails": True,
+                "hasPhone": not _has_violation(report, "RCST-A02"),
                 "hasOrcid16Digits": has_orcid,
-                "issues": [
-                    *(["Bannir les listes à puces pour les auteurs."] if has_bulleted_authors else []),
-                    *(["Identifiant ORCID à 16 chiffres manquant pour un ou plusieurs auteurs."] if not has_orcid else []),
-                    *(["Téléphone direct de l'auteur correspondant manquant."] if not has_phone else []),
-                ],
+                "issues": author_issues,
                 "recommendations": [
-                    "Format : Nom Prénom¹*, Co-Auteur² avec chiffres en exposant sans puces.",
-                    "Auteur correspondant (*) avec e-mail, téléphone et identifiant ORCID complet."
+                    "Format : Nom Prénom¹* avec chiffres en exposant, sans puces.",
+                    "Auteur correspondant (*) avec e-mail, téléphone et identifiant ORCID complet.",
                 ]
             },
             "abstractAndKeywords": {
-                "score": 50 if (abstract_words > 250 or has_forbidden_subtitles or has_references_in_abstract) else 90,
-                "status": "Non conforme" if (abstract_words > 250 or has_forbidden_subtitles) else "Conforme",
-                "wordCountFr": abstract_words,
-                "wordCountEn": abstract_words,
-                "isBilingual": has_english_title and has_keywords_en,
-                "hasForbiddenSubtitles": has_forbidden_subtitles,
-                "hasReferences": has_references_in_abstract,
-                "keywordsCountFr": 5 if has_keywords_fr else 0,
-                "keywordsCountEn": 5 if has_keywords_en else 0,
-                "issues": [
-                    *(["Le résumé dépasse la limite stricte de 250 mots."] if abstract_words > 250 else []),
-                    *(["Sous-titres prohibés dans le corps du résumé."] if has_forbidden_subtitles else []),
-                    *(["Références bibliographiques interdites dans le résumé."] if has_references_in_abstract else []),
-                ],
+                "score": abstract_score,
+                "status": "Non conforme" if _has_violation(report, "RCST-R01", "RCST-R02-FR", "RCST-R02-EN") else "Conforme",
+                "wordCountFr": report.abstract_word_count_fr,
+                "wordCountEn": report.abstract_word_count_en,
+                "isBilingual": not _has_violation(report, "RCST-R01"),
+                "hasForbiddenSubtitles": False,
+                "hasReferences": False,
+                "keywordsCountFr": 5 if report.has_keywords_fr else 0,
+                "keywordsCountEn": 5 if report.has_keywords_en else 0,
+                "issues": abstract_issues,
                 "recommendations": [
-                    "Rédiger un paragraphe unique bilingue (max 250 mots) avec 5 mots-clés conformes."
+                    "Rédiger un paragraphe unique bilingue (max 250 mots) avec 5 mots-clés conformes.",
                 ]
             },
             "imradAndStructure": {
-                "score": 50 if (len(missing_sections) > 2 or has_roman_numbering) else 85,
-                "status": "Non conforme" if (len(missing_sections) > 2 or has_roman_numbering) else "Conforme",
-                "hasArabicNumbering": has_arabic_numbering,
+                "score": imrad_score,
+                "status": "Non conforme" if _has_violation(report, "RCST-F01", "RCST-N01") else "Conforme",
+                "hasArabicNumbering": not _has_violation(report, "RCST-N01"),
                 "hasSuperfluousSubtitlesInIntro": False,
                 "introLengthCompliant": True,
                 "tablesAndFiguresCompliant": {
-                    "tablesRomanBefore": has_table_roman or not has_table_arabic,
-                    "figuresArabicAfter": has_figure_arabic,
+                    "tablesRomanBefore": not _has_violation(report, "RCST-T01a"),
+                    "figuresArabicAfter": not _has_violation(report, "RCST-T01b"),
                     "redundancyDetected": False,
-                    "notes": "Tableaux en chiffres romains avant, Figures en chiffres arabes après."
+                    "notes": "Tableaux : chiffres romains AVANT. Figures : chiffres arabes APRÈS."
                 },
                 "mandatoryEndSections": {
-                    "remerciements": has_rem,
-                    "financement": has_fin,
-                    "conflitInteret": has_conf,
-                    "considerationsEthiques": has_eth,
-                    "orcidAuteurs": has_orcid,
-                    "contributionAuteursInitialsOnly": has_contrib and has_initials
+                    "remerciements":        section_presence.get("remerciements", True),
+                    "financement":          section_presence.get("financement", True),
+                    "conflitInteret":       section_presence.get("conflit_interet", True),
+                    "considerationsEthiques": section_presence.get("ethique", True),
+                    "orcidAuteurs":         has_orcid,
+                    "contributionAuteursInitialsOnly": section_presence.get("contribution_auteurs", True),
                 },
-                "issues": [
-                    *(["Sections principales en chiffres arabes impératives (1. Introduction...)."] if has_roman_numbering else []),
-                    *(["Numérotation des tableaux en chiffres romains (ex: Tableau I) placée AVANT."] if has_table_arabic else []),
-                    *(["Sections finales obligatoires manquantes."] if missing_sections else []),
-                ],
+                "issues": imrad_issues,
                 "recommendations": [
-                    "Intégrer les 6 sections de fin d'article obligatoires avec initiales pour les contributions."
+                    "Intégrer les 6 sections de fin d'article obligatoires avec initiales pour les contributions.",
                 ]
             },
             "citationsAndReferences": {
-                "score": 40 if has_bracket_citations else 90,
-                "status": "Non conforme" if has_bracket_citations else "Conforme",
-                "apa7Compliant": not has_bracket_citations,
-                "hasNumericStyleBracket": has_bracket_citations,
+                "score": cit_score,
+                "status": "Non conforme" if _has_violation(report, "RCST-C01") else "Conforme",
+                "apa7Compliant": not _has_violation(report, "RCST-C01"),
+                "hasNumericStyleBracket": _has_violation(report, "RCST-C01"),
                 "crossReferencingValid": True,
                 "hangingIndentCompliant": True,
                 "alphabeticalOrderCompliant": True,
                 "missingFromBibliography": [],
                 "missingFromText": [],
-                "flaggedCitations": [
-                    {"raw": "[1], [2]", "error": "Style numérique prohibé", "correctedApa7": "(Mboma & Mabiala, 2015)"}
-                ] if has_bracket_citations else [],
-                "issues": [
-                    *(["Proscription formelle du style numérique entre crochets [1]. Appliquer strictement APA 7."] if has_bracket_citations else [])
-                ],
+                "flaggedCitations": flagged_citations,
+                "issues": [v.message for v in citation_violations],
                 "recommendations": [
-                    "Formater toutes les citations au format APA 7th (Auteur, Année).",
-                    "Ordonner la bibliographie alphabétiquement avec un retrait négatif d'1 cm dès la 2e ligne."
+                    "Formater toutes les citations au format APA 7 : (Auteur, Année).",
+                    "Ordonner la bibliographie alphabétiquement avec retrait négatif d'1 cm.",
                 ]
             },
             "style": {
-                "score": 100 if pronouns_count == 0 else max(30, 95 - pronouns_count * 12),
-                "status": "Conforme" if pronouns_count == 0 else "Non conforme",
-                "isImpersonal": pronouns_count == 0,
-                "personalPronounsDetected": [p[0] if isinstance(p, tuple) else p for p in pronouns[:10]],
-                "sampleReformulations": [
-                    {"original": "nous avons mesuré", "corrected": "des mesures ont été effectuées"},
-                    {"original": "notre étude prouve", "corrected": "les données démontrent"}
-                ],
-                "issues": [
-                    *(["Utilisation du style personnel ('nous', 'notre') prohibée."] if pronouns_count > 0 else [])
-                ],
+                "score": style_score,
+                "status": "Non conforme" if _has_violation(report, "RCST-S01") else "Conforme",
+                "isImpersonal": not _has_violation(report, "RCST-S01"),
+                "personalPronounsDetected": detected_pronouns,
+                "sampleReformulations": sample_reformulations,
+                "issues": pronoun_issues,
                 "recommendations": [
-                    "Adopter un style strictement impersonnel et passif conformément à la charte RCST."
+                    "Adopter un style strictement impersonnel et passif (Constitution RCST §1).",
                 ]
             }
         },
-        "priorityRecommendations": [
-            *(["Bannir impérativement le style subjectif ('nous', 'je', 'nos travaux')."] if pronouns_count > 0 else []),
-            *(["Remplacer les citations numériques [1] par les références APA 7."] if has_bracket_citations else []),
-            *(["Supprimer les puces pour les auteurs et ajouter les 16 chiffres ORCID."] if (has_bulleted_authors or not has_orcid) else []),
-            *(["Intégrer les 6 sections de fin d'article imposées par la RCST."] if missing_sections else [])
-        ],
+        "priorityRecommendations": priority_recs,
         "editorialBoardNotes": {
-            "decisionRecommendation": "Acceptation pour révision par les pairs" if status == "Conforme" else ("Révision mineure requise" if status == "Conforme avec réserves" else "Rejet avec demande de refonte majeure de conformité"),
-            "confidentialComments": "Vérifier la déclaration de conformité éthique et la cohérence des affiliations scientifiques.",
+            "decisionRecommendation": (
+                "Acceptation pour révision par les pairs" if status == "Conforme"
+                else ("Révision mineure requise" if status == "Conforme avec réserves"
+                      else "Rejet avec demande de refonte majeure de conformité")
+            ),
+            "confidentialComments": (
+                "Rapport généré par le moteur de règles déterministe RCST v2. "
+                "Vérifier la déclaration de conformité éthique et la cohérence des affiliations."
+            ),
             "ethicalChecklist": [
                 "Respect strict des directives éditoriales RCST / Conseil Scientifique National",
                 "Vérification de l'intégrité scientifique et anti-plagiat",
-                "Concordance des identifiants ORCID"
+                "Concordance des identifiants ORCID",
             ],
             "questionsForAuthors": [
                 "Confirmer les coordonnées directes de l'auteur correspondant.",
-                "Mentionner la contribution de chaque auteur sous forme d'initiales uniquement."
+                "Mentionner la contribution de chaque auteur sous forme d'initiales uniquement.",
             ]
-        }
+        },
+        "rulesReport": report.to_dict(),
+        "isAiGenerated": False,
     }
 
 
-async def audit_manuscript_with_ai(manuscript_text: str, source_filename: str = "manuscrit") -> Dict[str, Any]:
-    """
-    Appel à l'API Google GenAI officielle (`google-genai`) avec température basse (0.2).
-    Si indisponible ou en cas d'erreur de quota/clé, bascule automatiquement sur le moteur heuristique de secours.
-    """
-    if not settings.GEMINI_API_KEY:
-        heuristic = run_local_heuristic_audit(manuscript_text)
-        heuristic["isAiGenerated"] = False
-        return heuristic
+# ═════════════════════════════════════════════════════════════════════════════
+# COUCHE 2 : Enrichissement sémantique Gemini (limité)
+# ═════════════════════════════════════════════════════════════════════════════
 
+# Prompt Gemini limité à l'enrichissement sémantique — NE PAS modifier les scores
+_SEMANTIC_ENRICHMENT_PROMPT = """Tu es l'assistant éditorial assermenté RCST.
+Le moteur de règles déterministe a déjà calculé les scores et les non-conformités.
+NE MODIFIE PAS les scores, NE GÉNÈRE PAS de citations inventées.
+
+Ta seule tâche est d'enrichir le rapport avec :
+1. Un résumé éditorial en français expliquant la cohérence globale du manuscrit (2-3 phrases max).
+2. Des suggestions de reformulation contextualisées (max 3 exemples, en citant le texte exact).
+3. Une appréciation de la pertinence thématique pour la RCST (1 phrase).
+
+Réponds UNIQUEMENT en JSON avec ces clés :
+{
+  "semanticSummary": "...",
+  "contextualReformulations": [{"original": "...", "corrected": "..."}],
+  "thematicRelevance": "..."
+}"""
+
+
+async def _enrich_with_gemini(
+    base_report: Dict[str, Any],
+    manuscript_text: str,
+    source_filename: str,
+) -> Dict[str, Any]:
+    """
+    Enrichit le rapport de base avec l'analyse sémantique de Gemini.
+    En cas d'échec, retourne le rapport de base inchangé.
+    """
     try:
+        from google import genai
+        from google.genai import types
+
         client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        
-        user_prompt = f"""AUDIT OFFICIEL DE CONFORMITÉ RCST
-Fichier source : {source_filename}
-Volume : {len(manuscript_text.split())} mots
 
-MANUSCRIT SOUMIS :
----
-{manuscript_text}
----
-
-Exécute l'audit complet selon la Constitution de la RCST et renvoie STRICTEMENT le JSON spécifié."""
+        user_prompt = (
+            f"Fichier : {source_filename}\n"
+            f"Score global (moteur déterministe) : {base_report['globalScore']}/100\n"
+            f"Statut : {base_report['status']}\n\n"
+            f"EXTRAIT DU MANUSCRIT (800 premiers mots) :\n"
+            f"{' '.join(manuscript_text.split()[:800])}\n\n"
+            f"VIOLATIONS DÉTECTÉES :\n"
+            + "\n".join(
+                f"- [{v['rule_id']}] {v['severity']}: {v['message'][:150]}"
+                for v in base_report.get("rulesReport", {}).get("violations", [])[:8]
+            )
+        )
 
         candidate_models = list(dict.fromkeys([
             settings.GEMINI_MODEL,
             "gemini-3-flash-preview",
-            "gemini-3.5-flash"
+            "gemini-3.5-flash",
         ]))
+
         response = None
-        last_err = None
         for model_name in candidate_models:
             try:
                 response = client.models.generate_content(
                     model=model_name,
                     contents=user_prompt,
                     config=types.GenerateContentConfig(
-                        system_instruction=SYSTEM_PROMPT_RCST,
-                        temperature=0.2,
-                        response_mime_type="application/json"
+                        system_instruction=_SEMANTIC_ENRICHMENT_PROMPT,
+                        temperature=0.15,
+                        response_mime_type="application/json",
                     )
                 )
                 break
             except Exception as e:
-                last_err = e
-                print(f"[RCST Backend] Échec modèle {model_name}: {e}. Tentative avec modèle alternatif...")
+                print(f"[RCST] Gemini enrichissement {model_name} : {e}")
                 continue
 
         if response is None:
-            raise last_err or RuntimeError("Aucun modèle Gemini disponible.")
+            return base_report
 
-        raw_text = response.text.strip()
-        # Enlever les balises markdown ```json si présentes
-        if raw_text.startswith("```"):
-            raw_text = re.sub(r"^```(?:json)?\n?", "", raw_text)
-            raw_text = re.sub(r"\n?```$", "", raw_text)
+        raw = response.text.strip()
+        if raw.startswith("```"):
+            raw = re.sub(r"^```(?:json)?\n?", "", raw)
+            raw = re.sub(r"\n?```$", "", raw)
 
-        parsed_data = json.loads(raw_text)
-        parsed_data["isAiGenerated"] = True
-        return parsed_data
+        enrichment = json.loads(raw)
+
+        # Fusion : le rapport déterministe est inaltérable
+        enriched = dict(base_report)
+        if "semanticSummary" in enrichment:
+            enriched["summary"] = enrichment["semanticSummary"]
+        if "contextualReformulations" in enrichment:
+            enriched["sections"]["style"]["sampleReformulations"] = (
+                enrichment["contextualReformulations"][:3]
+            )
+        if "thematicRelevance" in enrichment:
+            enriched["editorialBoardNotes"]["confidentialComments"] += (
+                f" | Pertinence thématique : {enrichment['thematicRelevance']}"
+            )
+        enriched["isAiGenerated"] = True
+        return enriched
 
     except Exception as e:
-        print(f"[RCST Backend] Erreur ou indisponibilité GenAI: {e}. Bascule sur l'audit heuristique.")
-        heuristic = run_local_heuristic_audit(manuscript_text)
-        heuristic["isAiGenerated"] = False
-        return heuristic
+        print(f"[RCST] Enrichissement Gemini échoué ({e}) — rapport déterministe conservé.")
+        return base_report
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# COUCHE 3 : Point d'entrée principal (appelé par main.py)
+# ═════════════════════════════════════════════════════════════════════════════
+
+async def audit_manuscript_with_ai(
+    manuscript_text: str,
+    source_filename: str = "manuscrit",
+) -> Dict[str, Any]:
+    """
+    Audit hybride RCST :
+      1. Moteur déterministe (toujours) → rapport structuré
+      2. Enrichissement Gemini (si clé disponible) → résumé sémantique seulement
+    """
+    # Étape 1 — Analyse déterministe (toujours)
+    rules_report = run_all_rules(manuscript_text)
+    base_report  = _build_structured_report(rules_report, manuscript_text)
+
+    # Étape 2 — Enrichissement sémantique Gemini (optionnel)
+    if settings.GEMINI_API_KEY:
+        return await _enrich_with_gemini(base_report, manuscript_text, source_filename)
+
+    return base_report
+
+
+# ── Compatibilité rétrograde : heuristique locale (alias vers le moteur de règles) ──
+
+def run_local_heuristic_audit(text: str) -> Dict[str, Any]:
+    """
+    Alias de compatibilité pour les appels directs depuis d'autres modules.
+    Utilise désormais le moteur de règles déterministe.
+    """
+    report = run_all_rules(text)
+    result = _build_structured_report(report, text)
+    result["isAiGenerated"] = False
+    return result

@@ -1,8 +1,30 @@
+# --- Node / Frontend ---
 node_modules/
 build/
 dist/
 coverage/
 .DS_Store
 *.log
-.env*
+
+# --- Secrets (ne jamais versionner) ---
+.env
+.env.local
+.env.*.local
 !.env.example
+
+# --- Python / Backend ---
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+.venv/
+backend/.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# --- Distribution / Build artefacts ---
+*.spec
+

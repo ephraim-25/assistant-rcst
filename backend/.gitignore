@@ -1,0 +1,23 @@
+# --- Secrets ---
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# --- Python ---
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+
+# --- Environnements virtuels ---
+.venv/
+venv/
+*.egg-info/
+
+# --- Tests & couverture ---
+.pytest_cache/
+htmlcov/
+.coverage

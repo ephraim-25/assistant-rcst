@@ -1,7 +1,9 @@
 import os
 import json as _json
+import hashlib
+from datetime import timedelta
 from typing import List, Optional
-from fastapi import FastAPI, UploadFile, File, HTTPException, status
+from fastapi import FastAPI, UploadFile, File, HTTPException, status, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -20,103 +22,45 @@ try:
     from .extractor import extract_text_from_file
     from .audit_service import audit_manuscript_with_ai
     from .schemas import AuditRequest, AuditResponse, TextExtractionResponse
+    from .models import UserDB, UserInDB, UserRole, UserPublic, TokenResponse, RegisterRequest, LoginRequest
+    from .auth import (
+        hash_password, verify_password, create_access_token,
+        get_current_user, require_admin, get_user_db, oauth2_scheme
+    )
+    from .governance import GovernanceDB, get_governance_db, check_and_increment_quota
 except (ImportError, ValueError):
     from config import settings
     from extractor import extract_text_from_file
     from audit_service import audit_manuscript_with_ai
     from schemas import AuditRequest, AuditResponse, TextExtractionResponse
+    from models import UserDB, UserInDB, UserRole, UserPublic, TokenResponse, RegisterRequest, LoginRequest
+    from auth import (
+        hash_password, verify_password, create_access_token,
+        get_current_user, require_admin, get_user_db, oauth2_scheme
+    )
+    from governance import GovernanceDB, get_governance_db, check_and_increment_quota
 
 app = FastAPI(
     title="RCST Editorial Compliance & Audit API",
     description="Plateforme officielle d'audit éditorial et de contrôle de conformité pour la Revue Congolaise des Sciences & Technologies (RCST) - Conseil Scientifique National RDC.",
-    version="1.0.0"
+    version="2.0.0"
 )
 
-# Configuration CORS pour autoriser le frontend (Vite / Next.js / React)
+# Configuration CORS sécurisée — pas de wildcard lorsque allow_credentials=True
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list + ["*"],  # Autorise localhost & environnements dev
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "X-Requested-With"],
 )
 
-@app.get("/api/health")
-async def health_check():
-    """Vérification de l'état du serveur backend."""
-    return {
-        "status": "healthy",
-        "service": "RCST Editorial Audit Engine",
-        "hasGeminiKey": bool(settings.GEMINI_API_KEY),
-        "environment": settings.ENVIRONMENT
-    }
 
-@app.post("/api/extract-file", response_model=TextExtractionResponse)
-async def extract_file_endpoint(file: UploadFile = File(...)):
-    """
-    Extrait le texte brut d'un manuscrit (.docx, .pdf, .txt, .md).
-    Gère les erreurs d'encodage et calcule le volume de mots.
-    """
-    if not file:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Aucun fichier soumis."
-        )
+# ─── Utilitaires internes ─────────────────────────────────────────────────────
 
-    filename = file.filename or "manuscrit"
-    try:
-        content_bytes = await file.read()
-        extracted_text, ext = extract_text_from_file(content_bytes, filename)
-        
-        words = len(extracted_text.split())
-        return TextExtractionResponse(
-            text=extracted_text,
-            filename=filename,
-            extension=ext,
-            sizeBytes=len(content_bytes),
-            wordCount=words,
-            message=f"Document '{filename}' extrait avec succès ({words} mots). Prêt pour l'audit RCST."
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur lors de l'extraction du document : {str(e)}"
-        )
-
-
-@app.post("/api/audit")
-async def audit_endpoint(payload: AuditRequest):
-    """
-    Route principale d'audit de conformité RCST :
-    - Évalue le manuscrit selon la Constitution RCST (IMRAD, APA 7, style impersonnel, auteurs, affiliations, etc.)
-    - Interfaçage Google GenAI (température 0.2) avec bascule automatique heuristique de secours.
-    - Retourne le rapport d'audit officiel structuré.
-    """
-    text = payload.manuscriptText.strip()
-    if len(text) < 50:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Le contenu du manuscrit est trop court ou vide pour effectuer un audit éditorial."
-        )
-
-    try:
-        audit_result = await audit_manuscript_with_ai(
-            manuscript_text=text,
-            source_filename=payload.sourceFilename or "manuscrit"
-        )
-        return audit_result
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur lors de l'audit du manuscrit : {str(e)}"
-        )
-
-
-class ReformulateRequest(BaseModel):
-    textToReformulate: str
-
-class ApaConvertRequest(BaseModel):
-    referenceString: str
+def _ms_hash(text: str) -> str:
+    """Retourne les 12 premiers chars du SHA-256 du texte (non PII)."""
+    return hashlib.sha256(text.encode()).hexdigest()[:12]
 
 
 def _generate_with_fallback(client, contents, config):
@@ -128,30 +72,221 @@ def _generate_with_fallback(client, contents, config):
     last_err = None
     for m in candidate_models:
         try:
-            return client.models.generate_content(
-                model=m,
-                contents=contents,
-                config=config
-            )
+            return client.models.generate_content(model=m, contents=contents, config=config)
         except Exception as e:
             last_err = e
             continue
     raise last_err or RuntimeError("Aucun modèle Gemini disponible.")
 
 
-@app.post("/api/reformulate-style")
-async def reformulate_style_endpoint(payload: ReformulateRequest):
-    """
-    Reformule un passage en style impersonnel strict conforme à la Constitution RCST.
-    Utilise google-genai (gemini-2.5-flash avec fallback automatique) ou un correcteur local de secours.
-    """
-    from .config import settings
+# ─── Health (public) ──────────────────────────────────────────────────────────
 
+@app.get("/api/health", tags=["Système"])
+async def health_check():
+    """Vérification de l'état du serveur backend."""
+    return {
+        "status": "healthy",
+        "service": "RCST Editorial Audit Engine",
+        "hasGeminiKey": bool(settings.GEMINI_API_KEY),
+        "environment": settings.ENVIRONMENT,
+        "version": "2.0.0"
+    }
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# AUTH — Endpoints publics
+# ═════════════════════════════════════════════════════════════════════════════
+
+@app.post("/api/auth/register", response_model=TokenResponse, tags=["Auth"])
+async def register(
+    payload: RegisterRequest,
+    db: UserDB = Depends(get_user_db),
+):
+    """
+    Crée un nouveau compte utilisateur.
+    Le mot de passe est haché avec bcrypt avant stockage.
+    """
+    email = payload.email.lower().strip()
+    if db.get_by_email(email):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Un compte avec cette adresse e-mail existe déjà."
+        )
+    if len(payload.password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Le mot de passe doit comporter au moins 8 caractères."
+        )
+
+    user = UserInDB(
+        email=email,
+        full_name=payload.full_name.strip(),
+        hashed_password=hash_password(payload.password),
+        role=payload.role,
+    )
+    db.create_user(user)
+
+    token = create_access_token(
+        {"sub": user.id, "email": user.email, "role": user.role.value},
+        expires_delta=timedelta(minutes=settings.JWT_EXPIRE_MINUTES),
+    )
+    return TokenResponse(
+        access_token=token,
+        role=user.role,
+        full_name=user.full_name,
+        user_id=user.id,
+    )
+
+
+@app.post("/api/auth/login", response_model=TokenResponse, tags=["Auth"])
+async def login(
+    payload: LoginRequest,
+    db: UserDB = Depends(get_user_db),
+):
+    """
+    Authentifie un utilisateur et délivre un Bearer Token JWT.
+    """
+    email = payload.email.lower().strip()
+    user = db.get_by_email(email)
+
+    if not user or not verify_password(payload.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Identifiants incorrects.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ce compte a été désactivé.",
+        )
+
+    token = create_access_token(
+        {"sub": user.id, "email": user.email, "role": user.role.value},
+        expires_delta=timedelta(minutes=settings.JWT_EXPIRE_MINUTES),
+    )
+    return TokenResponse(
+        access_token=token,
+        role=user.role,
+        full_name=user.full_name,
+        user_id=user.id,
+    )
+
+
+@app.get("/api/auth/me", response_model=UserPublic, tags=["Auth"])
+async def get_me(current_user: UserInDB = Depends(get_current_user)):
+    """Retourne le profil de l'utilisateur connecté."""
+    return UserPublic(
+        id=current_user.id,
+        email=current_user.email,
+        full_name=current_user.full_name,
+        role=current_user.role,
+        is_active=current_user.is_active,
+        created_at=current_user.created_at,
+    )
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# EXTRACTION (protégé — token requis)
+# ═════════════════════════════════════════════════════════════════════════════
+
+@app.post("/api/extract-file", response_model=TextExtractionResponse, tags=["Éditorial"])
+async def extract_file_endpoint(
+    file: UploadFile = File(...),
+    current_user: UserInDB = Depends(get_current_user),
+):
+    """Extrait le texte brut d'un manuscrit (.docx, .pdf, .txt, .md)."""
+    if not file:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Aucun fichier soumis.")
+
+    filename = file.filename or "manuscrit"
+    try:
+        content_bytes = await file.read()
+        extracted_text, ext = extract_text_from_file(content_bytes, filename)
+        words = len(extracted_text.split())
+        return TextExtractionResponse(
+            text=extracted_text, filename=filename, extension=ext,
+            sizeBytes=len(content_bytes), wordCount=words,
+            message=f"Document '{filename}' extrait avec succès ({words} mots). Prêt pour l'audit RCST."
+        )
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Erreur lors de l'extraction : {str(e)}")
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# AUDIT (protégé + quota + journal)
+# ═════════════════════════════════════════════════════════════════════════════
+
+@app.post("/api/audit", tags=["Éditorial"])
+async def audit_endpoint(
+    payload: AuditRequest,
+    current_user: UserInDB = Depends(get_current_user),
+    gov_db: GovernanceDB = Depends(get_governance_db),
+):
+    """
+    Route principale d'audit de conformité RCST.
+    Exige un Bearer Token JWT valide (HTTP 401 sinon).
+    Respecte le quota journalier (HTTP 429 si dépassé).
+    """
+    text = payload.manuscriptText.strip()
+    if len(text) < 50:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Le manuscrit est trop court pour un audit éditorial.")
+
+    # Vérification quota
+    check_and_increment_quota(current_user.id, current_user.role, gov_db)
+
+    action_status = 200
+    error_detail = ""
+    try:
+        audit_result = await audit_manuscript_with_ai(
+            manuscript_text=text,
+            source_filename=payload.sourceFilename or "manuscrit"
+        )
+        return audit_result
+    except HTTPException as e:
+        action_status = e.status_code
+        error_detail = str(e.detail)
+        raise
+    except Exception as e:
+        action_status = 500
+        error_detail = str(e)
+        raise HTTPException(status_code=500, detail=f"Erreur lors de l'audit : {str(e)}")
+    finally:
+        gov_db.log_event(
+            user_id=current_user.id,
+            user_email=current_user.email,
+            action="audit",
+            model_used=settings.GEMINI_MODEL,
+            tokens_estimated=len(text) // 4,
+            manuscript_hash=_ms_hash(text),
+            status_code=action_status,
+            error_detail=error_detail,
+        )
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# REFORMULATION (protégé + quota + journal)
+# ═════════════════════════════════════════════════════════════════════════════
+
+class ReformulateRequest(BaseModel):
+    textToReformulate: str
+
+
+@app.post("/api/reformulate-style", tags=["Éditorial"])
+async def reformulate_style_endpoint(
+    payload: ReformulateRequest,
+    current_user: UserInDB = Depends(get_current_user),
+    gov_db: GovernanceDB = Depends(get_governance_db),
+):
+    """Reformule un passage en style impersonnel strict RCST."""
     text = payload.textToReformulate.strip()
     if not text:
         raise HTTPException(status_code=400, detail="Texte à reformuler manquant.")
 
-    # Correcteur local basique si pas de clé
+    check_and_increment_quota(current_user.id, current_user.role, gov_db)
+
     if not settings.GEMINI_API_KEY:
         import re
         result = text
@@ -166,10 +301,9 @@ async def reformulate_style_endpoint(payload: ReformulateRequest):
         ]
         for pattern, repl in replacements:
             result = re.sub(pattern, repl, result, flags=re.IGNORECASE)
-        return {
-            "rephrased": result,
-            "explanations": ["Remplacement systématique des marques de subjectivité par des tournures passives ou nominales."]
-        }
+        gov_db.log_event(current_user.id, current_user.email, "reformulate",
+                         status_code=200)
+        return {"rephrased": result, "explanations": ["Reformulation heuristique locale."]}
 
     try:
         from google import genai
@@ -177,11 +311,10 @@ async def reformulate_style_endpoint(payload: ReformulateRequest):
         import json
 
         client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        prompt = f"""Réécris le passage suivant dans le style impersonnel strict exigé par la Constitution de la Revue Congolaise des Sciences & Technologies (RCST).
-Bannis catégoriquement « nous », « je », « notre », « nos », « nos travaux ». Utilise des tournures passives, impersonnelles ou nominales de haute tenue scientifique.
+        prompt = f"""Réécris le passage suivant dans le style impersonnel strict exigé par la Constitution RCST.
+Bannis catégoriquement « nous », « je », « notre », « nos », « nos travaux ». Utilise des tournures passives, impersonnelles ou nominales.
 
-Passage :
-\"{text}\"
+Passage : \"{text}\"
 
 Réponds au format JSON :
 {{
@@ -189,27 +322,42 @@ Réponds au format JSON :
   "explanations": ["liste d'explications sur les changements apportés"]
 }}"""
         response = _generate_with_fallback(
-            client=client,
-            contents=prompt,
+            client=client, contents=prompt,
             config=types.GenerateContentConfig(temperature=0.1, response_mime_type="application/json")
         )
-        return json.loads(response.text.strip())
+        result = json.loads(response.text.strip())
+        gov_db.log_event(current_user.id, current_user.email, "reformulate",
+                         model_used=settings.GEMINI_MODEL, tokens_estimated=len(text) // 4, status_code=200)
+        return result
     except Exception as e:
+        gov_db.log_event(current_user.id, current_user.email, "reformulate",
+                         status_code=500, error_detail=str(e))
         raise HTTPException(status_code=500, detail=f"Erreur reformulation : {str(e)}")
 
 
-@app.post("/api/convert-apa")
-async def convert_apa_endpoint(payload: ApaConvertRequest):
-    """
-    Convertit une référence bibliographique au format APA 7e édition conforme à la RCST.
-    """
-    from .config import settings
+# ═════════════════════════════════════════════════════════════════════════════
+# CONVERSION APA (protégé + quota + journal)
+# ═════════════════════════════════════════════════════════════════════════════
 
+class ApaConvertRequest(BaseModel):
+    referenceString: str
+
+
+@app.post("/api/convert-apa", tags=["Éditorial"])
+async def convert_apa_endpoint(
+    payload: ApaConvertRequest,
+    current_user: UserInDB = Depends(get_current_user),
+    gov_db: GovernanceDB = Depends(get_governance_db),
+):
+    """Convertit une référence bibliographique au format APA 7e édition RCST."""
     ref = payload.referenceString.strip()
     if not ref:
         raise HTTPException(status_code=400, detail="Référence bibliographique manquante.")
 
+    check_and_increment_quota(current_user.id, current_user.role, gov_db)
+
     if not settings.GEMINI_API_KEY:
+        gov_db.log_event(current_user.id, current_user.email, "convert_apa", status_code=200)
         return {
             "apaFormatted": ref,
             "inTextCitationParenthetical": "(Auteur, 2024)",
@@ -223,41 +371,43 @@ async def convert_apa_endpoint(payload: ApaConvertRequest):
         import json
 
         client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        prompt = f"""Convertis cette référence bibliographique selon les normes APA 7ème édition exigées par la Revue Congolaise des Sciences & Technologies (RCST).
-Règles : ordre des auteurs (Nom, Initiale.), année entre parenthèses, titre de revue en italique, volume en italique, retrait négatif d'1 cm, lien DOI actif si disponible.
+        prompt = f"""Convertis cette référence bibliographique selon les normes APA 7ème édition RCST.
+Règles : ordre auteurs (Nom, Initiale.), année entre parenthèses, titre de revue en italique, DOI actif si disponible.
 
 Référence source : \"{ref}\"
 
 Réponds en JSON :
 {{
-  "apaFormatted": "référence formatée en APA 7 complet",
+  "apaFormatted": "référence formatée APA 7",
   "inTextCitationParenthetical": "ex: (Mboma & Mabiala, 2015)",
   "inTextCitationNarrative": "ex: Mboma et Mabiala (2015)",
   "notes": "corrections apportées"
 }}"""
         response = _generate_with_fallback(
-            client=client,
-            contents=prompt,
+            client=client, contents=prompt,
             config=types.GenerateContentConfig(temperature=0.1, response_mime_type="application/json")
         )
-        return json.loads(response.text.strip())
+        result = json.loads(response.text.strip())
+        gov_db.log_event(current_user.id, current_user.email, "convert_apa",
+                         model_used=settings.GEMINI_MODEL, tokens_estimated=len(ref) // 4, status_code=200)
+        return result
     except Exception as e:
+        gov_db.log_event(current_user.id, current_user.email, "convert_apa",
+                         status_code=500, error_detail=str(e))
         raise HTTPException(status_code=500, detail=f"Erreur conversion APA : {str(e)}")
 
 
-
-# ─── /api/chat ────────────────────────────────────────────────────────────────
+# ═════════════════════════════════════════════════════════════════════════════
+# CHAT (protégé + quota + journal)
+# ═════════════════════════════════════════════════════════════════════════════
 
 _CHAT_SYSTEM_PROMPT = """Tu es l'assistant éditorial expert et assermenté de la Revue Congolaise des Sciences & Technologies (RCST), sous l'égide du Conseil Scientifique National (RDC).
 
-Ton rôle est d'aider les auteurs et éditeurs à comprendre précisément les non-conformités de leur manuscrit et à les corriger, en appliquant rigoureusement la Constitution de la RCST.
-
-DIRECTIVES COMPORTEMENTALES :
-- Expliquer clairement pourquoi un passage est non-conforme (avec référence explicite aux règles RCST)
-- Proposer des corrections concrètes, ciblées et immédiatement applicables
+DIRECTIVES :
+- Expliquer clairement pourquoi un passage est non-conforme (avec référence aux règles RCST)
+- Proposer des corrections concrètes et immédiatement applicables
 - Toujours justifier par un article ou une règle de la Constitution RCST
 - Rester concis, pédagogique, professionnel et bienveillant
-- Maintenir la cohérence avec le rapport d'audit déjà émis pour ce manuscrit
 
 CONSTITUTION RCST — RÈGLES ESSENTIELLES :
 1. Style impersonnel strict : bannir "nous", "je", "notre etude", "nos travaux"
@@ -282,34 +432,24 @@ class ChatRequest(BaseModel):
     history: List[ChatMessageIn] = Field(default_factory=list)
 
 
-@app.post("/api/chat")
-async def chat_endpoint(payload: ChatRequest):
-    """
-    Assistant editorial contextuel RCST.
-    Maintient l'historique de la conversation et le contexte manuscrit + audit.
-    """
+@app.post("/api/chat", tags=["Éditorial"])
+async def chat_endpoint(
+    payload: ChatRequest,
+    current_user: UserInDB = Depends(get_current_user),
+    gov_db: GovernanceDB = Depends(get_governance_db),
+):
+    """Assistant éditorial contextuel RCST (JWT requis)."""
+    check_and_increment_quota(current_user.id, current_user.role, gov_db)
+
     context_system = _CHAT_SYSTEM_PROMPT
     if payload.manuscriptText:
-        context_system += f"\n\nMANUSCRIT EN COURS D'AUDIT (extrait) :\n---\n{payload.manuscriptText[:4000]}\n---"
+        context_system += f"\n\nMANUSCRIT EN COURS D'AUDIT :\n---\n{payload.manuscriptText[:4000]}\n---"
     if payload.auditReport:
-        context_system += f"\n\nRAPPORT D'AUDIT (JSON) :\n{_json.dumps(payload.auditReport, ensure_ascii=False)[:2000]}"
+        context_system += f"\n\nRAPPORT D'AUDIT :\n{_json.dumps(payload.auditReport, ensure_ascii=False)[:2000]}"
 
     if not settings.GEMINI_API_KEY:
-        msg_lower = payload.message.lower()
-        fallback_map = [
-            (["nous", "je ", "notre", "nos ", "impersonnel"],
-             "Pour le style impersonnel RCST :\n• « nous avons analysé » → « une analyse a été conduite »\n• « nos résultats montrent » → « les résultats démontrent »\n• « notre étude prouve » → « les données attestent »\n\nConstitution RCST §5 : style impersonnel strict dans tout le manuscrit."),
-            (["[1]", "[2]", "citation", "crochet", "apa"],
-             "Format APA 7 requis (Constitution RCST §6) :\n• Dans le texte : (Mboma & Mabiala, 2020)\n• 3+ auteurs : (Mabiala et al., 2020)\n• Interdiction formelle des crochets [1], [2]."),
-            (["orcid"],
-             "ORCID obligatoire (Constitution RCST §2), format : 0000-0000-0000-000X\nObtenir gratuitement sur https://orcid.org/register"),
-            (["résumé", "abstract", "250"],
-             "Résumé RCST (§3) : bilingue FR+EN, max 250 mots, paragraphe unique sans sous-titres ni références, 5 mots-clés par langue."),
-        ]
-        for keywords, response in fallback_map:
-            if any(k in msg_lower for k in keywords):
-                return {"response": response, "isAiGenerated": False}
-        return {"response": "Mode heuristique local actif (clé GEMINI_API_KEY absente). Configurez backend/.env pour des réponses contextuelles.", "isAiGenerated": False}
+        gov_db.log_event(current_user.id, current_user.email, "chat", status_code=200)
+        return {"response": "Mode heuristique local actif (clé GEMINI_API_KEY absente).", "isAiGenerated": False}
 
     try:
         from google import genai as _genai
@@ -323,10 +463,106 @@ async def chat_endpoint(payload: ChatRequest):
         contents.append(_types.Content(role="user", parts=[_types.Part(text=payload.message)]))
 
         response = _generate_with_fallback(
-            client=client,
-            contents=contents,
+            client=client, contents=contents,
             config=_types.GenerateContentConfig(system_instruction=context_system, temperature=0.3)
+        )
+        gov_db.log_event(
+            current_user.id, current_user.email, "chat",
+            model_used=settings.GEMINI_MODEL,
+            tokens_estimated=len(payload.message) // 4,
+            status_code=200
         )
         return {"response": response.text.strip(), "isAiGenerated": True}
     except Exception as e:
+        gov_db.log_event(current_user.id, current_user.email, "chat",
+                         status_code=500, error_detail=str(e))
         raise HTTPException(status_code=500, detail=f"Erreur assistant editorial : {str(e)}")
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# ADMIN — Routes réservées aux administrateurs (require_admin → HTTP 403)
+# ═════════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/admin/audit-trail", tags=["Administration"])
+async def get_audit_trail(
+    limit: int = Query(50, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    user_id: Optional[str] = Query(None),
+    action: Optional[str] = Query(None),
+    _admin: UserInDB = Depends(require_admin),
+    gov_db: GovernanceDB = Depends(get_governance_db),
+):
+    """Consultation du journal d'audit (ADMIN uniquement)."""
+    events = gov_db.get_trail(limit=limit, offset=offset, user_id=user_id, action=action)
+    total = gov_db.count_trail()
+    return {"total": total, "limit": limit, "offset": offset, "events": events}
+
+
+@app.get("/api/admin/quotas", tags=["Administration"])
+async def get_quotas(
+    _admin: UserInDB = Depends(require_admin),
+    gov_db: GovernanceDB = Depends(get_governance_db),
+):
+    """Tableau de bord des quotas journaliers (ADMIN uniquement)."""
+    return {
+        "date": __import__("datetime").date.today().isoformat(),
+        "quotas": gov_db.all_quotas_today(),
+        "limits": {
+            "ADMIN": settings.DAILY_QUOTA_ADMIN,
+            "REVIEWER": settings.DAILY_QUOTA_REVIEWER,
+        }
+    }
+
+
+@app.get("/api/admin/users", tags=["Administration"])
+async def list_users(
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+    _admin: UserInDB = Depends(require_admin),
+    db: UserDB = Depends(get_user_db),
+):
+    """Liste des utilisateurs enregistrés (ADMIN uniquement)."""
+    users = db.list_users(limit=limit, offset=offset)
+    total = db.count()
+    return {"total": total, "limit": limit, "offset": offset, "users": users}
+
+
+@app.put("/api/admin/users/{user_id}/role", tags=["Administration"])
+async def update_user_role(
+    user_id: str,
+    payload: dict,
+    _admin: UserInDB = Depends(require_admin),
+    db: UserDB = Depends(get_user_db),
+):
+    """Met à jour le rôle d'un utilisateur (ADMIN uniquement)."""
+    new_role = payload.get("role")
+    if new_role not in [r.value for r in UserRole]:
+        raise HTTPException(status_code=422, detail="Rôle invalide. Valeurs acceptées : ADMIN, REVIEWER.")
+    success = db.update_role(user_id, UserRole(new_role))
+    if not success:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+    return {"message": f"Rôle mis à jour → {new_role}", "user_id": user_id}
+
+
+@app.delete("/api/admin/users/{user_id}", tags=["Administration"])
+async def deactivate_user(
+    user_id: str,
+    _admin: UserInDB = Depends(require_admin),
+    db: UserDB = Depends(get_user_db),
+):
+    """Désactive un compte utilisateur (ADMIN uniquement)."""
+    success = db.deactivate(user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+    return {"message": "Compte désactivé.", "user_id": user_id}
+
+
+@app.post("/api/admin/quotas/reset/{user_id}", tags=["Administration"])
+async def reset_user_quota(
+    user_id: str,
+    _admin: UserInDB = Depends(require_admin),
+    gov_db: GovernanceDB = Depends(get_governance_db),
+):
+    """Réinitialise le quota journalier d'un utilisateur (ADMIN uniquement)."""
+    gov_db.reset_quota(user_id)
+    return {"message": f"Quota réinitialisé pour l'utilisateur {user_id}"}
