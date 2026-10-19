@@ -60,7 +60,12 @@ def _register(email: str, password: str = "TestPass123!", role: str = "REVIEWER"
         "role": role,
     })
     assert r.status_code == 200, f"Register failed: {r.text}"
-    return r.json()
+    data = r.json()
+    if role == "ADMIN":
+        # L'inscription publique ne donne jamais ADMIN : promotion directe en base de test.
+        db = _auth_module.get_user_db()
+        db.update_role(data["user_id"], _models_module.UserRole.ADMIN)
+    return data
 
 
 def _login(email: str, password: str = "TestPass123!") -> str:
@@ -277,3 +282,30 @@ class TestAuditTrail:
         r = client.get("/api/admin/audit-trail",
                        headers={"Authorization": f"Bearer {token}"})
         assert r.status_code == 403
+
+
+# ─── Sécurité : pas d'auto-promotion ADMIN à l'inscription ────────────────────
+
+class TestNoSelfPromotion:
+    def test_register_with_admin_role_creates_reviewer(self):
+        """Régression : un client ne peut pas se donner le rôle ADMIN."""
+        email = _unique_email()
+        r = client.post("/api/auth/register", json={
+            "email": email, "full_name": "Pirate",
+            "password": "TestPass123!", "role": "ADMIN",
+        })
+        assert r.status_code == 200
+        assert r.json()["role"] == "REVIEWER"
+        token = _login(email)
+        assert client.get("/api/admin/users",
+                          headers={"Authorization": f"Bearer {token}"}).status_code == 403
+
+    def test_bootstrap_admin_from_env(self, monkeypatch):
+        """Le premier ADMIN est créé depuis ADMIN_EMAIL / ADMIN_PASSWORD."""
+        email = _unique_email()
+        monkeypatch.setattr(_auth_module.settings, "ADMIN_EMAIL", email)
+        monkeypatch.setattr(_auth_module.settings, "ADMIN_PASSWORD", "AdminPass123!")
+        _auth_module.bootstrap_admin(_auth_module.get_user_db())
+        token = _login(email, "AdminPass123!")
+        assert client.get("/api/admin/users",
+                          headers={"Authorization": f"Bearer {token}"}).status_code == 200

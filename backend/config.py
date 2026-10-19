@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     JWT_EXPIRE_MINUTES: int = 60          # Durée de vie du token (1 heure)
     JWT_REFRESH_EXPIRE_DAYS: int = 7      # Optionnel — refresh token
 
+    # ── Premier administrateur (amorçage) ─────────────────────────────────────
+    # Créé au démarrage si les deux variables sont définies et si le compte n'existe pas.
+    # Définir ces valeurs dans les variables d'environnement Vercel, jamais dans Git.
+    ADMIN_EMAIL: str = ""
+    ADMIN_PASSWORD: str = ""
+
     # ── Gouvernance & Quotas ───────────────────────────────────────────────────
     DAILY_QUOTA_REVIEWER: int = 20        # Appels IA max par jour pour un Reviewer
     DAILY_QUOTA_ADMIN: int = 200          # Appels IA max par jour pour un Admin
