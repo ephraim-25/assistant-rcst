@@ -7,6 +7,7 @@ auth.py — Authentification JWT & RBAC pour l'API RCST
 """
 from __future__ import annotations
 
+import sys
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -97,7 +98,23 @@ def get_user_db() -> UserDB:
     global _user_db
     if _user_db is None:
         _user_db = UserDB(settings.SQLITE_DB_PATH)
+        bootstrap_admin(_user_db)
     return _user_db
+
+
+def bootstrap_admin(db: UserDB) -> None:
+    """Crée le premier ADMIN depuis ADMIN_EMAIL / ADMIN_PASSWORD (si définis et absent)."""
+    email = (settings.ADMIN_EMAIL or "").lower().strip()
+    password = settings.ADMIN_PASSWORD or ""
+    if not email or not password or db.get_by_email(email):
+        return
+    if len(password) < 8:
+        print("[RCST] ADMIN_PASSWORD trop court (min 8) : administrateur non créé.", file=sys.stderr)
+        return
+    db.create_user(UserInDB(
+        email=email, full_name="Administrateur RCST",
+        hashed_password=hash_password(password), role=UserRole.ADMIN,
+    ))
 
 
 async def get_current_user(

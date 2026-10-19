@@ -143,7 +143,9 @@ async def register(
         email=email,
         full_name=payload.full_name.strip(),
         hashed_password=hash_password(payload.password),
-        role=payload.role,
+        # SÉCURITÉ : le rôle n'est JAMAIS choisi par le client. Toute inscription
+        # publique crée un REVIEWER ; la promotion se fait via /api/admin/users/{id}/role.
+        role=UserRole.REVIEWER,
     )
     db.create_user(user)
 

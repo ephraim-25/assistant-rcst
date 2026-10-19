@@ -28,3 +28,7 @@ venv/
 # --- Distribution / Build artefacts ---
 *.spec
 
+
+# --- Bases de données locales (jamais versionnées) ---
+*.db
+*.sqlite3
