@@ -4,7 +4,6 @@ Persistance SQLite thread-safe via sqlite3 + threading.Lock.
 """
 from __future__ import annotations
 
-import sqlite3
 import threading
 import uuid
 from datetime import datetime, timezone
@@ -12,6 +11,11 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, Field
+
+try:
+    from .database import connect as connect_db
+except ImportError:
+    from database import connect as connect_db
 
 
 # ─── Enums & Modèles Pydantic ─────────────────────────────────────────────────
@@ -77,10 +81,8 @@ class UserDB:
         self._db_path = db_path
         self._init_db()
 
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self._db_path, check_same_thread=False)
-        conn.row_factory = sqlite3.Row
-        return conn
+    def _connect(self):
+        return connect_db(self._db_path)
 
     def _init_db(self) -> None:
         with self._lock, self._connect() as conn:
@@ -170,10 +172,10 @@ class UserDB:
 
     def count(self) -> int:
         with self._lock, self._connect() as conn:
-            return conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+            return conn.execute("SELECT COUNT(*) AS n FROM users").fetchone()["n"]
 
     @staticmethod
-    def _row_to_user(row: sqlite3.Row) -> UserInDB:
+    def _row_to_user(row) -> UserInDB:
         return UserInDB(
             id=row["id"],
             email=row["email"],

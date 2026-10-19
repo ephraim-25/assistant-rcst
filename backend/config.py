@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     # ── Gouvernance & Quotas ───────────────────────────────────────────────────
     DAILY_QUOTA_REVIEWER: int = 20        # Appels IA max par jour pour un Reviewer
     DAILY_QUOTA_ADMIN: int = 200          # Appels IA max par jour pour un Admin
+    # PostgreSQL (ex. Supabase, pooler « transaction » conseillé sur Vercel) :
+    #   postgresql://USER:MOT_DE_PASSE@HOTE:6543/postgres
+    # Si défini, remplace SQLite. OBLIGATOIRE en production (disque Vercel éphémère).
+    DATABASE_URL: str = ""
     SQLITE_DB_PATH: str = str(BASE_DIR / "rcst_data.db")  # Chemin absolu SQLite
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -71,6 +75,16 @@ class Settings(BaseSettings):
             )
         return key
 
+    def validate_database(self) -> None:
+        """Interdit le démarrage en production sans base persistante (PostgreSQL)."""
+        if self.ENVIRONMENT.lower() == "production" and not self.DATABASE_URL.strip():
+            print(
+                "[RCST] ERREUR CRITIQUE : DATABASE_URL est vide en production. SQLite perd "
+                "ses données sur Vercel ; définissez l'URL PostgreSQL (Supabase).",
+                file=sys.stderr
+            )
+            sys.exit(1)
+
     def validate_cors(self) -> None:
         """Interdit le démarrage en production si CORS_ORIGINS est vide ou contient '*'."""
         if self.ENVIRONMENT.lower() == "production":
@@ -96,3 +110,4 @@ class Settings(BaseSettings):
 
 settings = Settings()
 settings.validate_cors()
+settings.validate_database()

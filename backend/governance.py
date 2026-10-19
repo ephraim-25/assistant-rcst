@@ -1,13 +1,12 @@
 """
 governance.py — Gouvernance Backend RCST (A2)
 ---------------------------------------------
-• Suivi des quotas journaliers par utilisateur (SQLite)
-• Audit Trail : journal de chaque appel IA (SQLite)
+• Suivi des quotas journaliers par utilisateur (SQLite en local, PostgreSQL en production)
+• Audit Trail : journal de chaque appel IA (SQLite en local, PostgreSQL en production)
 • Accessible par les administrateurs via /api/admin/*
 """
 from __future__ import annotations
 
-import sqlite3
 import threading
 import uuid
 from datetime import date, datetime, timezone
@@ -18,9 +17,11 @@ from fastapi import HTTPException, status
 try:
     from .config import settings
     from .models import UserRole
+    from .database import connect as connect_db
 except ImportError:
     from config import settings
     from models import UserRole
+    from database import connect as connect_db
 
 
 # ─── Base de données Gouvernance ──────────────────────────────────────────────
@@ -37,10 +38,8 @@ class GovernanceDB:
         self._db_path = db_path
         self._init_db()
 
-    def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self._db_path, check_same_thread=False)
-        conn.row_factory = sqlite3.Row
-        return conn
+    def _connect(self):
+        return connect_db(self._db_path)
 
     def _init_db(self) -> None:
         with self._lock, self._connect() as conn:
@@ -104,7 +103,7 @@ class GovernanceDB:
                 """INSERT INTO quota_usage (user_id, usage_date, call_count)
                    VALUES (?, ?, 1)
                    ON CONFLICT(user_id, usage_date)
-                   DO UPDATE SET call_count = call_count + 1""",
+                   DO UPDATE SET call_count = quota_usage.call_count + 1""",
                 (user_id, today)
             )
             conn.commit()
@@ -193,7 +192,7 @@ class GovernanceDB:
 
     def count_trail(self) -> int:
         with self._lock, self._connect() as conn:
-            return conn.execute("SELECT COUNT(*) FROM audit_trail").fetchone()[0]
+            return conn.execute("SELECT COUNT(*) AS n FROM audit_trail").fetchone()["n"]
 
     # ── Validation Éditeur avant Envoi (B4) ──────────────────────────────────
 
