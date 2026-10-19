@@ -314,14 +314,61 @@ Réponds UNIQUEMENT en JSON avec ces clés :
 }"""
 
 
+_REVIEWER_CRITIC_PROMPT = """Tu es le Réviseur Critique en Chef (Senior Reviewer Critic) de la Revue Congolaise des Sciences & Technologies (RCST).
+Ton rôle est de contre-expertiser de façon impitoyable l'analyse de la Passe 1 :
+1. Éliminer d'éventuels faux positifs ou hallucinations de la Passe 1.
+2. Déceler d'éventuels angles morts critiques non relevés (problème d'articulation méthodologique, manque d'impersonnalité, etc.).
+3. Formuler une appréciation finale d'arbitrage éditorial.
+
+Réponds UNIQUEMENT en JSON avec cette structure :
+{
+  "criticNotes": "Analyse critique et angles morts identifiés...",
+  "confirmedViolations": ["RCST-S01", "RCST-C01"],
+  "refutedFalsePositives": [],
+  "refinedSummary": "Résumé éditorial consolidé et validé par le réviseur en chef..."
+}"""
+
+
+def _merge_double_check_reports(
+    pass1_report: Dict[str, Any],
+    pass2_critic: Dict[str, Any],
+) -> Dict[str, Any]:
+    """
+    Algorithme de fusion croisée entre la Passe 1 et la Passe 2 (Reviewer Critic) :
+    - Conserve le socle déterministe inaltérable
+    - Intègre le résumé éditorial consolidé
+    - Enrichit les commentaires confidentiels de l'arbitrage critique
+    """
+    merged = dict(pass1_report)
+    refined_summary = pass2_critic.get("refinedSummary")
+    if refined_summary:
+        merged["summary"] = refined_summary
+
+    critic_notes = pass2_critic.get("criticNotes", "")
+    if critic_notes:
+        existing_comments = merged.get("editorialBoardNotes", {}).get("confidentialComments", "")
+        merged["editorialBoardNotes"]["confidentialComments"] = (
+            f"{existing_comments} | [Double-Check IA Arbitrage] {critic_notes}"
+        )
+
+    merged["doubleCheck"] = {
+        "isVerifiedByCritic": True,
+        "criticNotes": critic_notes,
+        "refutedFalsePositives": pass2_critic.get("refutedFalsePositives", []),
+    }
+    return merged
+
+
 async def _enrich_with_gemini(
     base_report: Dict[str, Any],
     manuscript_text: str,
     source_filename: str,
 ) -> Dict[str, Any]:
     """
-    Enrichit le rapport de base avec l'analyse sémantique de Gemini.
-    En cas d'échec, retourne le rapport de base inchangé.
+    Système de Double-Check IA en 2 passes séquentielles :
+      • Passe 1 : Analyse initiale sémantique (résumé, reformulations, pertinence)
+      • Passe 2 : Réviseur Critique en Chef (vérification des angles morts)
+      • Fusion : Synthèse croisée blindée
     """
     try:
         from google import genai
@@ -329,7 +376,7 @@ async def _enrich_with_gemini(
 
         client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-        user_prompt = (
+        user_prompt_pass1 = (
             f"Fichier : {source_filename}\n"
             f"Score global (moteur déterministe) : {base_report['globalScore']}/100\n"
             f"Statut : {base_report['status']}\n\n"
@@ -348,12 +395,13 @@ async def _enrich_with_gemini(
             "gemini-3.5-flash",
         ]))
 
-        response = None
+        # ── PASSE 1 : Analyse Initiale ───────────────────────────────────────
+        response_pass1 = None
         for model_name in candidate_models:
             try:
-                response = client.models.generate_content(
+                response_pass1 = client.models.generate_content(
                     model=model_name,
-                    contents=user_prompt,
+                    contents=user_prompt_pass1,
                     config=types.GenerateContentConfig(
                         system_instruction=_SEMANTIC_ENRICHMENT_PROMPT,
                         temperature=0.15,
@@ -362,36 +410,72 @@ async def _enrich_with_gemini(
                 )
                 break
             except Exception as e:
-                print(f"[RCST] Gemini enrichissement {model_name} : {e}")
+                print(f"[RCST] Gemini Passe 1 {model_name} : {e}")
                 continue
 
-        if response is None:
+        if response_pass1 is None:
             return base_report
 
-        raw = response.text.strip()
-        if raw.startswith("```"):
-            raw = re.sub(r"^```(?:json)?\n?", "", raw)
-            raw = re.sub(r"\n?```$", "", raw)
+        raw1 = response_pass1.text.strip()
+        if raw1.startswith("```"):
+            raw1 = re.sub(r"^```(?:json)?\n?", "", raw1)
+            raw1 = re.sub(r"\n?```$", "", raw1)
 
-        enrichment = json.loads(raw)
+        enrichment1 = json.loads(raw1)
+        pass1_report = dict(base_report)
+        if "semanticSummary" in enrichment1:
+            pass1_report["summary"] = enrichment1["semanticSummary"]
+        if "contextualReformulations" in enrichment1:
+            pass1_report["sections"]["style"]["sampleReformulations"] = (
+                enrichment1["contextualReformulations"][:3]
+            )
+        if "thematicRelevance" in enrichment1:
+            pass1_report["editorialBoardNotes"]["confidentialComments"] += (
+                f" | Pertinence thématique : {enrichment1['thematicRelevance']}"
+            )
+        pass1_report["isAiGenerated"] = True
 
-        # Fusion : le rapport déterministe est inaltérable
-        enriched = dict(base_report)
-        if "semanticSummary" in enrichment:
-            enriched["summary"] = enrichment["semanticSummary"]
-        if "contextualReformulations" in enrichment:
-            enriched["sections"]["style"]["sampleReformulations"] = (
-                enrichment["contextualReformulations"][:3]
-            )
-        if "thematicRelevance" in enrichment:
-            enriched["editorialBoardNotes"]["confidentialComments"] += (
-                f" | Pertinence thématique : {enrichment['thematicRelevance']}"
-            )
-        enriched["isAiGenerated"] = True
-        return enriched
+        # ── PASSE 2 : Reviewer Critic & Double-Check ──────────────────────────
+        user_prompt_pass2 = (
+            f"Rapport de Passe 1 :\n"
+            f"Résumé P1 : {pass1_report.get('summary')}\n"
+            f"Score : {pass1_report.get('globalScore')}/100\n\n"
+            f"Extrait du manuscrit pour contre-expertise :\n"
+            f"{' '.join(manuscript_text.split()[:600])}"
+        )
+
+        response_pass2 = None
+        for model_name in candidate_models:
+            try:
+                response_pass2 = client.models.generate_content(
+                    model=model_name,
+                    contents=user_prompt_pass2,
+                    config=types.GenerateContentConfig(
+                        system_instruction=_REVIEWER_CRITIC_PROMPT,
+                        temperature=0.10,
+                        response_mime_type="application/json",
+                    )
+                )
+                break
+            except Exception as e:
+                print(f"[RCST] Gemini Passe 2 {model_name} : {e}")
+                continue
+
+        if response_pass2 is None:
+            return pass1_report
+
+        raw2 = response_pass2.text.strip()
+        if raw2.startswith("```"):
+            raw2 = re.sub(r"^```(?:json)?\n?", "", raw2)
+            raw2 = re.sub(r"\n?```$", "", raw2)
+
+        critic_result = json.loads(raw2)
+
+        # ── FUSION DES DEUX PASSES ───────────────────────────────────────────
+        return _merge_double_check_reports(pass1_report, critic_result)
 
     except Exception as e:
-        print(f"[RCST] Enrichissement Gemini échoué ({e}) — rapport déterministe conservé.")
+        print(f"[RCST] Double-Check Gemini échoué ({e}) — rapport déterministe conservé.")
         return base_report
 
 
@@ -404,15 +488,18 @@ async def audit_manuscript_with_ai(
     source_filename: str = "manuscrit",
 ) -> Dict[str, Any]:
     """
-    Audit hybride RCST :
-      1. Moteur déterministe (toujours) → rapport structuré
-      2. Enrichissement Gemini (si clé disponible) → résumé sémantique seulement
+    Audit hybride RCST avec Double-Check IA :
+      1. Moteur déterministe (toujours) → rapport structuré de base
+      2. Système de Double-Check IA (si clé disponible) :
+         - Passe 1 : enrichissement sémantique initial
+         - Passe 2 : critique et détection des angles morts
+         - Fusion : rapport unifié et blindé pour l'éditeur
     """
     # Étape 1 — Analyse déterministe (toujours)
     rules_report = run_all_rules(manuscript_text)
     base_report  = _build_structured_report(rules_report, manuscript_text)
 
-    # Étape 2 — Enrichissement sémantique Gemini (optionnel)
+    # Étape 2 — Double-Check IA Gemini (optionnel si clé présente)
     if settings.GEMINI_API_KEY:
         return await _enrich_with_gemini(base_report, manuscript_text, source_filename)
 

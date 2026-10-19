@@ -541,7 +541,7 @@ def check_tables_figures(text: str) -> List[RuleViolation]:
 # POINT D'ENTRÉE PRINCIPAL
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def run_all_rules(text: str) -> RulesReport:
+def run_all_rules(text: str, include_extended_catalog: bool = False) -> RulesReport:
     """
     Exécute toutes les règles déterministes sur le texte du manuscrit.
     Retourne un RulesReport complet et reproductible.
@@ -558,7 +558,7 @@ def run_all_rules(text: str) -> RulesReport:
         "RCST-N01", "RCST-A02", "RCST-T01a", "RCST-T01b",
     ]
 
-    # Exécution de chaque règle
+    # Exécution de chaque règle principale
     rule_results = {
         "RCST-S01":     check_prohibited_pronouns(text),
         "RCST-C01":     check_legacy_citations(text),
@@ -573,6 +573,18 @@ def run_all_rules(text: str) -> RulesReport:
 
     for key, violations in rule_results.items():
         report.violations.extend(violations)
+
+    # Exécution optionnelle / granulaire du catalogue étendu (90+ règles)
+    if include_extended_catalog:
+        try:
+            from .rules_catalog import execute_catalog_rules, RCST_CATALOG
+        except (ImportError, ValueError):
+            from rules_catalog import execute_catalog_rules, RCST_CATALOG
+
+        catalog_violations = execute_catalog_rules(text)
+        report.violations.extend(catalog_violations)
+        catalog_ids = [r["id"] for r in RCST_CATALOG]
+        all_rule_ids.extend(catalog_ids)
 
     # Calcul des IDs "passés" (aucune violation pour cette règle)
     violated_ids = {v.rule_id for v in report.violations}

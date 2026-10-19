@@ -13,3 +13,5 @@ bcrypt==4.0.1
 # ── Tests ─────────────────────────────────────────
 pytest>=8.3.0
 httpx>=0.27.0
+# ── Génération de Rapports PDF (B2 & B3) ──────────────
+reportlab>=4.0.0

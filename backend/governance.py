@@ -65,10 +65,23 @@ class GovernanceDB:
                     timestamp        TEXT NOT NULL
                 );
 
+                CREATE TABLE IF NOT EXISTS submission_dispatches (
+                    submission_id    TEXT PRIMARY KEY,
+                    approved_by_id   TEXT NOT NULL,
+                    approved_by_email TEXT NOT NULL,
+                    approved_by_name TEXT NOT NULL,
+                    editor_role      TEXT NOT NULL,
+                    comments         TEXT NOT NULL DEFAULT '',
+                    dispatch_status  TEXT NOT NULL DEFAULT 'APPROVED',
+                    timestamp        TEXT NOT NULL
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_trail_user
                     ON audit_trail (user_id);
                 CREATE INDEX IF NOT EXISTS idx_trail_ts
                     ON audit_trail (timestamp DESC);
+                CREATE INDEX IF NOT EXISTS idx_dispatch_sub
+                    ON submission_dispatches (submission_id);
             """)
             conn.commit()
 
@@ -181,6 +194,78 @@ class GovernanceDB:
     def count_trail(self) -> int:
         with self._lock, self._connect() as conn:
             return conn.execute("SELECT COUNT(*) FROM audit_trail").fetchone()[0]
+
+    # ── Validation Éditeur avant Envoi (B4) ──────────────────────────────────
+
+    def approve_dispatch(
+        self,
+        submission_id: str,
+        approved_by_id: str,
+        approved_by_email: str,
+        approved_by_name: str,
+        editor_role: str,
+        comments: str = "",
+    ) -> dict:
+        """Consigne l'approbation explicite de l'éditeur pour l'envoi du rapport/manuscrit à l'auteur."""
+        now = datetime.now(timezone.utc).isoformat()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                """INSERT INTO submission_dispatches
+                   (submission_id, approved_by_id, approved_by_email, approved_by_name,
+                    editor_role, comments, dispatch_status, timestamp)
+                   VALUES (?, ?, ?, ?, ?, ?, 'APPROVED', ?)
+                   ON CONFLICT(submission_id)
+                   DO UPDATE SET approved_by_id=excluded.approved_by_id,
+                                 approved_by_email=excluded.approved_by_email,
+                                 approved_by_name=excluded.approved_by_name,
+                                 editor_role=excluded.editor_role,
+                                 comments=excluded.comments,
+                                 dispatch_status='APPROVED',
+                                 timestamp=excluded.timestamp""",
+                (submission_id, approved_by_id, approved_by_email, approved_by_name,
+                 editor_role, comments, now)
+            )
+            conn.commit()
+
+        # Consignation simultanée dans le journal d'audit général
+        self.log_event(
+            user_id=approved_by_id,
+            user_email=approved_by_email,
+            action="approve_dispatch",
+            model_used="human_editor_validation",
+            tokens_estimated=0,
+            manuscript_hash=submission_id,
+            status_code=200,
+            error_detail=f"Validation envoi par {approved_by_name} ({editor_role})",
+        )
+
+        return {
+            "submission_id": submission_id,
+            "approved_by_id": approved_by_id,
+            "approved_by_name": approved_by_name,
+            "editor_role": editor_role,
+            "dispatch_status": "APPROVED",
+            "timestamp": now,
+            "comments": comments,
+        }
+
+    def is_dispatch_approved(self, submission_id: str) -> bool:
+        """Vérifie si la soumission a fait l'objet d'une approbation formelle."""
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                "SELECT dispatch_status FROM submission_dispatches WHERE submission_id=?",
+                (submission_id,)
+            ).fetchone()
+        return bool(row and row["dispatch_status"] == "APPROVED")
+
+    def get_dispatch(self, submission_id: str) -> Optional[dict]:
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM submission_dispatches WHERE submission_id=?",
+                (submission_id,)
+            ).fetchone()
+        return dict(row) if row else None
+
 
 
 # ─── Instance partagée ────────────────────────────────────────────────────────
