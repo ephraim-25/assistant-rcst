@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import React, { useState, useMemo, useRef } from 'react';
 import { 
   FileText, 
@@ -114,7 +115,7 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/extract-file', {
+      const response = await apiFetch('/api/extract-file', {
         method: 'POST',
         body: formData,
       });

@@ -567,6 +567,24 @@ async def update_user_role(
     return {"message": f"Rôle mis à jour → {new_role}", "user_id": user_id}
 
 
+@app.put("/api/admin/users/{user_id}/status", tags=["Administration"])
+async def set_user_status(
+    user_id: str,
+    payload: dict,
+    admin: UserInDB = Depends(require_admin),
+    db: UserDB = Depends(get_user_db),
+):
+    """Suspend ou réactive un compte (ADMIN uniquement). Un admin ne peut pas se suspendre lui-même."""
+    is_active = payload.get("is_active")
+    if not isinstance(is_active, bool):
+        raise HTTPException(status_code=422, detail="Champ 'is_active' (booléen) requis.")
+    if user_id == admin.id and not is_active:
+        raise HTTPException(status_code=400, detail="Vous ne pouvez pas suspendre votre propre compte.")
+    if not db.set_active(user_id, is_active):
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+    return {"message": "Compte réactivé." if is_active else "Compte suspendu.", "user_id": user_id}
+
+
 @app.delete("/api/admin/users/{user_id}", tags=["Administration"])
 async def deactivate_user(
     user_id: str,

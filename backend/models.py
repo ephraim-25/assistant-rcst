@@ -152,6 +152,14 @@ class UserDB:
             conn.commit()
         return cur.rowcount > 0
 
+    def set_active(self, user_id: str, active: bool) -> bool:
+        with self._lock, self._connect() as conn:
+            cur = conn.execute(
+                "UPDATE users SET is_active = ? WHERE id = ?", (int(active), user_id)
+            )
+            conn.commit()
+        return cur.rowcount > 0
+
     def deactivate(self, user_id: str) -> bool:
         with self._lock, self._connect() as conn:
             cur = conn.execute(

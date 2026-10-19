@@ -50,8 +50,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
     e.preventDefault();
     setFeedback(null);
 
-    if (newPassword && newPassword.length < 4) {
-      setFeedback({ type: 'error', message: 'Le mot de passe doit comporter au moins 4 caractères.' });
+    if (newPassword && newPassword.length < 8) {
+      setFeedback({ type: 'error', message: 'Le mot de passe doit comporter au moins 8 caractères.' });
       return;
     }
 

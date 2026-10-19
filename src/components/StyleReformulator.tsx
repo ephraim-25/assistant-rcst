@@ -1,3 +1,4 @@
+import { apiFetch } from '../lib/api';
 import React, { useState } from 'react';
 import { PenTool, ArrowRight, Sparkles, Check, Copy, RefreshCw, AlertCircle, ShieldAlert } from 'lucide-react';
 
@@ -30,7 +31,7 @@ export const StyleReformulator: React.FC = () => {
     setIsLoading(true);
     setResult(null);
     try {
-      const response = await fetch('/api/reformulate-style', {
+      const response = await apiFetch('/api/reformulate-style', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ textToReformulate: inputText }),

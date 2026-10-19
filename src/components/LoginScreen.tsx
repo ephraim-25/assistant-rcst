@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { UserRole } from '../types/auth';
 import { 
   ShieldCheck, 
   Lock, 
@@ -130,14 +129,13 @@ const RcstOfficialCrest: React.FC<{ className?: string }> = ({ className = "w-24
 );
 
 export const LoginScreen: React.FC = () => {
-  const { login, register, registeredUsers } = useAuth();
+  const { login, register } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>('login');
 
   // Champs de formulaire
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [role, setRole] = useState<UserRole>('admin');
 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -173,7 +171,6 @@ export const LoginScreen: React.FC = () => {
         name,
         email,
         password,
-        role,
       });
 
       if (!result.success) {
@@ -396,11 +393,6 @@ export const LoginScreen: React.FC = () => {
                   </button>
                 </div>
 
-                {registeredUsers.length === 0 && (
-                  <div className="mt-4 p-3 rounded-lg bg-slate-900/80 border border-slate-800 text-[11px] text-slate-400 text-center">
-                    💡 <strong>Premier lancement :</strong> Aucun compte enregistré sur cet appareil. Cliquez sur <strong>« Créer un compte »</strong> pour enregistrer votre accès Administrateur ou Reviewer.
-                  </div>
-                )}
               </form>
             )}
 
@@ -460,7 +452,7 @@ export const LoginScreen: React.FC = () => {
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Minimum 4 caractères"
+                      placeholder="Minimum 8 caractères"
                       className="w-full pl-10 pr-11 py-2.5 rounded-lg bg-white text-slate-900 placeholder-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm transition-all"
                       disabled={isLoading}
                     />
@@ -474,52 +466,10 @@ export const LoginScreen: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Sélecteur de Rôle / Grade */}
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                    SÉLECTION DU GRADE / RÔLE OFFICIEL
-                  </label>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <button
-                      type="button"
-                      onClick={() => setRole('admin')}
-                      className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
-                        role === 'admin'
-                          ? 'bg-amber-500/15 border-amber-500 text-amber-200 ring-1 ring-amber-400/50'
-                          : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="font-bold flex items-center gap-1.5 text-amber-300 text-[11px]">
-                        <span>👑 Administrateur</span>
-                      </div>
-                      <div className="text-[10px] text-slate-400 mt-1">
-                        Éditeur Principal
-                      </div>
-                      <div className="text-[9px] text-slate-500 mt-0.5">
-                        Supervision & paramétrage
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setRole('reviewer')}
-                      className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
-                        role === 'reviewer'
-                          ? 'bg-sky-500/15 border-sky-500 text-sky-200 ring-1 ring-sky-400/50'
-                          : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="font-bold flex items-center gap-1.5 text-sky-300 text-[11px]">
-                        <span>🔬 Reviewer</span>
-                      </div>
-                      <div className="text-[10px] text-slate-400 mt-1">
-                        Comité de lecture
-                      </div>
-                      <div className="text-[9px] text-slate-500 mt-0.5">
-                        Audits & chat contextuel
-                      </div>
-                    </button>
-                  </div>
+                {/* Information sur le rôle attribué à l'inscription */}
+                <div className="p-3 rounded-lg bg-sky-500/10 border border-sky-500/30 text-[11px] text-sky-200 leading-relaxed">
+                  <strong className="text-sky-300">🔬 Votre compte sera créé avec le rôle Reviewer</strong>
+                  <span className="text-slate-300"> (Comité de lecture : audits et chat contextuel). Les droits d’Administrateur sont attribués ultérieurement par l’Éditeur Principal depuis son tableau de bord.</span>
                 </div>
 
                 <div className="pt-2">
