@@ -1,0 +1,52 @@
+Titre : Épidémiologie moléculaire du paludisme dans la province du Haut-Katanga
+Title: Molecular Epidemiology of Malaria in the Haut-Katanga Province
+
+Dieudonné Mwamba, Christian Kalala
+Faculté de Médecine, Université de Lubumbashi, République Démocratique du Congo
+
+Résumé :
+La surveillance épidémiologique des souches de Plasmodium falciparum en Afrique centrale constitue un pilier fondamental pour orienter les stratégies de lutte antivectorielle et prévenir l'émergence de chimiorésistances. Cette recherche prospective a été réalisée auprès de six cents patients fébriles consultant dans trois centres de santé périphériques de la province du Haut-Katanga. Des prélèvements sanguins sur papier buvard ont permis d'extraire l'acide désoxyribonucléique parasitaire afin de caractériser les marqueurs de polymorphisme génétique k13, crt et mdr1 par amplification en chaîne par polymérase nichée. Les analyses génotypiques démontrent une prédominance marquée des allèles sensibles aux dérivés de l'artémisinine, sans détection de mutations candidates associées à une clairance parasitaire ralentie. En revanche, les polymorphismes conférant une résistance historique à la chloroquine demeurent fixés à des fréquences élevées au sein de la population parasitaire circulante. La diversité génétique globale observée traduit une intensité soutenue de la transmission locale malgré l'usage régulier de moustiquaires imprégnées d'insecticide. Ces données épidémiologiques confortent l'efficacité actuelle des combinaisons thérapeutiques à base d'artémisinine en première intention dans la région. Elles soulignent l'importance impérative d'un réseau sentinelle de surveillance génotypique continue pour détecter précocement tout signal d'échappement thérapeutique.
+
+Mots-clés : Paludisme, Plasmodium falciparum, Épidémiologie moléculaire, Résistance thérapeutique, Haut-Katanga
+
+Abstract :
+Epidemiological surveillance of Plasmodium falciparum strains across Central Africa represents an essential prerequisite for guiding vector control interventions and preventing drug resistance emergence. This prospective investigation enrolled six hundred febrile patients attending three primary healthcare facilities across Haut-Katanga province. Dried blood spot specimens enabled parasite genomic DNA extraction followed by molecular characterization of k13, crt, and mdr1 polymorphic loci through nested polymerase chain reaction assays. Genotypic evaluations demonstrate persistent predominance of artemisinin-sensitive alleles, with no documented candidate mutations associated with delayed parasite clearance. Conversely, polymorphisms associated with historical chloroquine resistance remain fixed at elevated frequencies throughout the circulating parasite population. The substantial genetic diversity observed indicates high ongoing transmission intensity despite wide distribution of long-lasting insecticidal nets. These epidemiological findings confirm current therapeutic effectiveness of artemisinin-based combination therapies as first-line treatment regimens across the region. They emphasize the necessity of maintaining an active sentinel genotypic monitoring network to ensure timely identification of emerging drug resistance markers.
+
+Keywords : Malaria, Plasmodium falciparum, Molecular epidemiology, Drug resistance, Haut-Katanga
+
+1. Introduction
+La maîtrise de l'endémie palustre demeure une priorité de santé publique majeure en République Démocratique du Congo (Mukendi, 2020). L'émergence potentielle de mutations de résistance exige un suivi régulier (Bondo & Kazadi, 2018).
+
+2. Matériel et méthodes
+Les cohortes cliniques ont été constituées conformément aux directives diagnostiques de l'Organisation Mondiale de la Santé.
+
+3. Résultats
+La distribution des génotypes analysés est présentée ci-après.
+
+Tableau I : Fréquences alléliques des marqueurs de résistance observées dans la cohorte
+Locus | Allèle sauvage (%) | Allèle mutant (%) | Signification statistique
+k13   | 98,5               | 1,5               | p > 0,05
+crt   | 12,0               | 88,0              | p < 0,001
+
+Figure 1 : Répartition spatiale des cas confirmés par microscopie optique et PCR dans les zones sanitaires.
+
+4. Discussion
+L'absence de mutation fonctionnelle sur le gène k13 corrobore les résultats d'enquêtes récentes menées dans les provinces voisines (Mukendi, 2020).
+
+5. Conclusion
+Le schéma thérapeutique actuel conserve toute sa pertinence clinique dans le bassin sanitaire étudié.
+
+Remerciements
+Les auteurs remercient chaleureusement le personnel infirmier des centres de santé pour leur contribution précieuse à la collecte des échantillons.
+
+Financement
+Les analyses de laboratoire ont été financées par une subvention de recherche de la Fondation Médicale Congolaise.
+
+Conflit d'Intérêt
+Les auteurs déclarent formellement ne détenir aucun intérêt financier ou d'affiliation en relation avec les résultats présentés.
+
+Considérations Éthiques
+Le protocole a reçu l'approbation formelle du Comité National d'Éthique de la Santé (Réf. CNES/042/2022). Un consentement éclairé écrit a été recueilli.
+
+Contribution des Auteurs
+D.M. a dirigé l'étude clinique et rédigé l'article. C.K. a exécuté les analyses moléculaires et validé les données.

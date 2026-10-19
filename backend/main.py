@@ -609,6 +609,45 @@ async def reset_user_quota(
     return {"message": f"Quota réinitialisé pour l'utilisateur {user_id}"}
 
 
+@app.get("/api/admin/benchmark-report", tags=["Administration"])
+async def get_benchmark_report(
+    _admin: UserInDB = Depends(require_admin),
+    gov_db: GovernanceDB = Depends(get_governance_db),
+):
+    """
+    Rapport de performance et banc d'essai certifié (ADMIN uniquement).
+    Exécute le banc d'essai automatisé sur le corpus de référence annoté,
+    calcule le rappel, le taux de faux positifs, la précision et le F1-score,
+    et consigne l'opération dans le journal d'audit.
+    """
+    try:
+        from benchmark_runner import run_benchmark
+    except (ImportError, ValueError):
+        from .benchmark_runner import run_benchmark
+
+    try:
+        report = run_benchmark()
+        gov_db.log_event(
+            user_id=_admin.id,
+            user_email=_admin.email,
+            action="benchmark_report",
+            status_code=200,
+        )
+        return report
+    except Exception as e:
+        gov_db.log_event(
+            user_id=_admin.id,
+            user_email=_admin.email,
+            action="benchmark_report",
+            status_code=500,
+            error_detail=str(e),
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur lors de l'exécution du banc d'essai : {str(e)}",
+        )
+
+
 # ═════════════════════════════════════════════════════════════════════════════
 # ANNOTATION DOCX (B1) — Génération du manuscrit .docx annoté avec commentaires Word natifs
 # ═════════════════════════════════════════════════════════════════════════════

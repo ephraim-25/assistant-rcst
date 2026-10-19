@@ -1,0 +1,90 @@
+{
+  "benchmark_version": "1.0.0",
+  "name": "Banc d'Essai RCST — Vérité Terrain de Référence Éditoriale",
+  "institution": "Revue Congolaise des Sciences & Technologies (RCST)",
+  "description": "Base de données de référence annotée manuellement par le comité de lecture de la RCST pour l'évaluation et l'homologation des algorithmes de contrôle de conformité.",
+  "target_metrics": {
+    "min_recall": 0.90,
+    "max_false_positive_rate": 0.05,
+    "min_precision": 0.90,
+    "min_f1_score": 0.90
+  },
+  "evaluated_rules": [
+    "RCST-S01",
+    "RCST-C01",
+    "RCST-A01",
+    "RCST-R01",
+    "RCST-R02-FR",
+    "RCST-R02-EN",
+    "RCST-F01",
+    "RCST-N01",
+    "RCST-A02",
+    "RCST-T01a",
+    "RCST-T01b"
+  ],
+  "manuscripts": {
+    "manuscript_01_compliant.txt": {
+      "title": "Évaluation de la résilience hydrogéologique des aquifères face aux variations climatiques dans le bassin du fleuve Congo",
+      "category": "Témoin conforme",
+      "expected_violations": [],
+      "description": "Manuscrit 100% conforme à toutes les exigences de la Constitution RCST et APA 7. Sert de contrôle négatif strict."
+    },
+    "manuscript_02_pronouns_and_brackets.txt": {
+      "title": "Analyse des contraintes mécaniques dans les structures composites en climat tropical",
+      "category": "Style et citations",
+      "expected_violations": [
+        "RCST-S01",
+        "RCST-C01"
+      ],
+      "description": "Présence de pronoms personnels subjectifs interdits (nous, notre, nos) et de citations numériques obsolètes [1], [2]."
+    },
+    "manuscript_03_missing_orcid_author.txt": {
+      "title": "Épidémiologie moléculaire du paludisme dans la province du Haut-Katanga",
+      "category": "Auteurs et métadonnées",
+      "expected_violations": [
+        "RCST-A01",
+        "RCST-A02"
+      ],
+      "description": "Absence des identifiants ORCID obligatoires pour les auteurs et absence des coordonnées de l'auteur correspondant."
+    },
+    "manuscript_04_abstract_issues.txt": {
+      "title": "Modélisation cinétique de la biométhanisation des déchets ménagers urbains à Kinshasa",
+      "category": "Résumés et mots-clés",
+      "expected_violations": [
+        "RCST-R01",
+        "RCST-R02-FR"
+      ],
+      "description": "Résumé français dépassant le plafond strict de 250 mots, et absence de l'Abstract anglais et des Keywords."
+    },
+    "manuscript_05_missing_final_sections.txt": {
+      "title": "Analyse spectrale des signaux sismiques précurseurs dans la région volcanique du Nyiragongo",
+      "category": "Sections obligatoires",
+      "expected_violations": [
+        "RCST-F01"
+      ],
+      "description": "Absence complète des sections terminales imposées par la Constitution RCST (Remerciements, Financement, Conflit d'intérêts, Éthique, Contributions)."
+    },
+    "manuscript_06_structure_and_tables.txt": {
+      "title": "Évaluation des performances agronomiques de variétés améliorées de manioc dans le bassin sédimentaire de Kinshasa",
+      "category": "Structure et illustrations",
+      "expected_violations": [
+        "RCST-N01",
+        "RCST-T01a",
+        "RCST-T01b"
+      ],
+      "description": "Sections numérotées en chiffres romains au lieu d'arabes, tableau numéroté en arabe au lieu de romain, et figure en romain au lieu d'arabe."
+    },
+    "manuscript_07_multiple_violations.txt": {
+      "title": "Caractérisation granulométrique et minéralogique des sables alluvionnaires de la rivière N'djili",
+      "category": "Violations multiples",
+      "expected_violations": [
+        "RCST-S01",
+        "RCST-C01",
+        "RCST-A01",
+        "RCST-F01",
+        "RCST-T01a"
+      ],
+      "description": "Manuscrit complexe cumulant pronoms subjectifs, crochets, absence d'ORCID, omission des sections terminales et mauvais format de tableau."
+    }
+  }
+}

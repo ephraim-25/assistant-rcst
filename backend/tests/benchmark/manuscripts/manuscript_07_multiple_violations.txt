@@ -1,0 +1,39 @@
+Titre : Caractérisation granulométrique et minéralogique des sables alluvionnaires de la rivière N'djili
+Title: Granulometric and Mineralogical Characterization of Alluvial Sands from the N'djili River
+
+Michel Kabamba¹*, Robert Ngandu²
+¹ Faculté des Sciences, Université de Kinshasa, RDC
+² Centre de Recherches Géologiques et Minières, Kinshasa, RDC
+*Auteur correspondant : michel.kabamba@unikin.cd | +243 855 000 111
+
+Résumé :
+L'exploitation artisanale des agrégats siliceux alluvionnaires dans le lit de la rivière N'djili fournit la majorité des matériaux fins nécessaires aux chantiers de construction dans l'agglomération kinoise. Cette étude présente les propriétés granulométriques, minéralogiques et géotechniques d'échantillons prélevés le long d'un transect longitudinal de quinze kilomètres. Des analyses sédimentologiques par tamisage normalisé et diffraction des rayons X ont été réalisées afin de déterminer les modules de finesse, les coefficients d'uniformité et les cortèges minéraux dominants. Les courbes granulométriques montrent des sables à granulométrie moyenne, bien classés, présentant un équivalent de sable supérieur à quatre-vingts pour cent garantissant une faible proportion d'impuretés argileuses nocives. La fraction minéralogique est dominée à plus de quatre-vingt-dix pour cent par le quartz détritique subarrondi, accompagné d'accessoires lourds comprenant la tourmaline, le zircon et l'ilménite. Les essais d'écrasement sur mortiers normalisés confirment la conformité des sables extraits aux exigences structurelles du génie civil pour la confection de bétons armés de haute performance. Ces résultats établissent les caractéristiques de référence des gisements alluvionnaires fluviaux et fournissent des critères techniques pour la gestion rationnelle des zones d'extraction périurbaines.
+
+Mots-clés : Sédimentologie, Sable alluvionnaire, Granulométrie, Rivière N'djili, Béton
+
+Abstract :
+Artisanal extraction of siliceous alluvial sand deposits along the N'djili river bed provides the vast majority of fine aggregates required for civil construction across the Kinshasa metropolis. This study investigates granulometric, mineralogical, and geotechnical characteristics of bulk sediment samples retrieved along a fifteen-kilometer longitudinal fluvial transect. Standardized mechanical sieve analysis and X-ray powder diffraction were performed to quantify fineness moduli, uniformity coefficients, and principal mineral suites. Granulometric distribution curves demonstrate medium-grained, well-sorted sand populations with sand equivalent values exceeding eighty percent, ensuring negligible amounts of deleterious clay fractions. The mineralogical composition is heavily dominated by subrounded detrital quartz exceeding ninety percent, accompanied by a heavy mineral accessory suite composed of tourmaline, zircon, and ilmenite. Compressive strength testing on standardized sand-cement mortars validates the mechanical compliance of harvested sands with standard civil engineering specifications for high-performance reinforced concrete applications. These empirical findings provide foundational reference data for regional riverine alluvial resources and define practical technical benchmarks for sustainable management of metropolitan extraction sites.
+
+Keywords : Sedimentology, Alluvial sand, Granulometry, N'djili River, Concrete
+
+1. Introduction
+Dans notre travail, nous avons analysé les gisements alluvionnaires exploités pour l'approvisionnement urbain en granulats. Les études régionales antérieures ont décrit la sédimentation quaternaire dans le bassin [1], mais nos données expérimentales précisent la qualité géotechnique [2]. Nous pensons que cette caractérisation est indispensable pour prévenir les risques structurels [1, 2].
+
+2. Matériel et méthodes
+Les prélèvements ont été effectués à basse eau au moyen d'une benne sédimentologique manuelle.
+
+3. Résultats
+Les caractéristiques sédimentologiques principales sont récapitulées dans le tableau suivant.
+
+Tableau 1 : Paramètres granulométriques et minéralogiques moyens des échantillons analysés
+Site de prélèvement | Module de finesse | Équivalent de sable (%) | Teneur en quartz (%)
+Amont               | 2,45              | 84                      | 92,5
+Aval                | 2,68              | 88                      | 94,1
+
+Figure 1 : Distribution granulométrique cumulative des sables alluvionnaires fluviaux.
+
+4. Discussion
+Comme nous l'avons constaté lors des essais mécaniques, les agrégats présentent une excellente propreté compatible avec les normes de construction.
+
+5. Conclusion
+Cette recherche met en évidence la qualité géotechnique remarquable des sables alluvionnaires locaux.

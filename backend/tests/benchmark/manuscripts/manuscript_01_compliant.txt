@@ -1,0 +1,54 @@
+Titre : Évaluation de la résilience hydrogéologique des aquifères face aux variations climatiques dans le bassin du fleuve Congo
+Title: Assessment of Hydrogeological Resilience of Aquifers in the Congo River Basin Under Climatic Variations
+
+Jean Mboma¹*, Pierre Mabiala²
+¹ Département de Géologie, Université de Kinshasa, RDC | ORCID : 0000-0002-1234-5678
+² Faculté des Sciences Appliquées, Université de Lubumbashi, RDC | ORCID : 0000-0003-8765-4321
+*Auteur correspondant : jean.mboma@unikin.cd | +243 815 123 456
+
+Résumé :
+La dynamique hydrogéologique des aquifères profonds en Afrique centrale subit l'influence croissante des modifications pluviométriques saisonnières et des prélèvements anthropiques non régulés. Cette étude examine la réponse piézométrique et la recharge des nappes phréatiques du bassin versant congolais à travers un suivi piézométrique décennal combiné à des modélisations hydrodynamiques tridimensionnelles. Les enregistrements collectés entre 2012 et 2022 révèlent une stabilité relative des niveaux de base piézométriques dans les formations gréseuses mésozoïques, malgré une réduction saisonnière marquée des écoulements de surface. L'analyse isotopique de l'oxygène-18 et du deutérium confirme l'existence d'une recharge contemporaine diffuse, alimentée par les précipitations convectives équatoriales. Les simulations prédictives mettent en évidence une vulnérabilité accrue des aquifères superficiels périurbains sous l'effet combiné de la densification démographique et de l'imperméabilisation des sols. Ces résultats fournissent des repères scientifiques cruciaux pour la planification durable des ressources en eau souterraine en République Démocratique du Congo. Ils préconisent la mise en place d'un réseau télémétrique national de surveillance piézométrique et l'adoption de périmètres de protection hydrogéologique autour des champs de captage stratégiques alimentant les grandes agglomérations.
+
+Mots-clés : Hydrogéologie, Aquifère, Bassin du Congo, Recharge piézométrique, Gestion durable
+
+Abstract :
+The hydrogeological dynamics of deep aquifers in Central Africa are increasingly influenced by seasonal rainfall fluctuations and unregulated anthropogenic extraction. This study examines piezometric response and groundwater recharge in the Congolese catchment through ten years of continuous piezometric monitoring combined with three-dimensional hydrodynamic modeling. Records collected between 2012 and 2022 demonstrate relative stability of piezometric baseline levels within Mesozoic sandstone formations, despite significant seasonal reductions in surface runoff discharge. Isotopic analysis of oxygen-18 and deuterium confirms the active presence of diffuse modern recharge sustained by equatorial convective precipitation systems. Predictive simulations highlight increased vulnerability of peri-urban shallow aquifers driven by combined impacts of rapid demographic expansion and extensive surface soil sealing. These findings provide vital scientific baselines for sustainable groundwater resources management across the Democratic Republic of Congo. The investigation strongly recommends the deployment of an integrated national telemetric groundwater monitoring network alongside the enforcement of hydrogeological protection perimeters surrounding strategic municipal wellfields supplying major urban centers.
+
+Keywords : Hydrogeology, Aquifer, Congo Basin, Piezometric recharge, Sustainable management
+
+1. Introduction
+La gestion rationnelle des eaux souterraines représente un impératif de premier ordre pour la sécurité hydrique en Afrique centrale (Kabengele, 2021). Plusieurs travaux récents soulignent la vulnérabilité des nappes face au changement climatique (Tshilombo & Mukendi, 2019).
+
+2. Matériel et méthodes
+Le protocole expérimental s'appuie sur un réseau de vingt forages instrumentés répartis sur l'ensemble du bassin hydrographique.
+
+3. Résultats
+Les observations piézométriques sont synthétisées ci-dessous.
+
+Tableau I : Synthèse des paramètres piézométriques moyens observés (2012-2022)
+Secteur | Profondeur moyenne (m) | Transmissivité (m²/j) | Recharge estimée (mm/an)
+Nord    | 42,5                   | 1,2 x 10⁻³            | 185
+Sud     | 38,1                   | 2,4 x 10⁻³            | 210
+
+Figure 1 : Évolution spatio-temporelle des charges piézométriques moyennes dans le bassin central.
+
+4. Discussion
+La stabilité observée concorde avec les conclusions de recherches antérieures conduites en milieu équatorial (Kabengele, 2021).
+
+5. Conclusion
+Cette recherche met en lumière la nécessité d'une gouvernance intégrée des ressources souterraines.
+
+Remerciements
+Les auteurs adressent leurs vifs remerciements au Centre de Recherches Hydrogéologiques de Kinshasa pour l'accès aux données de terrain.
+
+Financement
+Ces travaux ont bénéficié de l'appui financier du Fonds National de la Recherche Scientifique de la RDC.
+
+Conflit d'Intérêt
+Les auteurs déclarent formellement l'absence de tout conflit d'intérêt dans la conduite et la publication de cette étude.
+
+Considérations Éthiques
+Le protocole de recherche a été mené en stricte conformité avec les réglementations environnementales et scientifiques nationales.
+
+Contribution des Auteurs
+J.M. a conçu l'étude et rédigé le manuscrit. P.M. a réalisé les modélisations hydrodynamiques et révisé le texte final.

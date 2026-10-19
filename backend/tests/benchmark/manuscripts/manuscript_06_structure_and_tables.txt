@@ -1,0 +1,55 @@
+Titre : Évaluation des performances agronomiques de variétés améliorées de manioc dans le bassin sédimentaire de Kinshasa
+Title: Agronomic Performance Evaluation of Improved Cassava Varieties in the Sedimentary Basin of Kinshasa
+
+Gaston Tshilumba¹*, Béatrice Masengu²
+¹ Faculté des Sciences Agronomiques, Université de Kinshasa | ORCID : 0000-0002-8901-2345
+² Institut National pour l'Étude et la Recherche Agronomiques | ORCID : 0000-0003-9012-3456
+*Auteur correspondant : gaston.tshilumba@unikin.cd | +243 812 345 678
+
+Résumé :
+L'intensification durable de la culture du manioc sur les sols sableux ferrallitiques du plateau des Batéké représente un enjeu capital pour assurer l'approvisionnement vivrier de la capitale congolaise. Cette expérimentation agronomique a évalué le comportement phénologique et le rendement en matière sèche de cinq cultivars améliorés tolérants à la mosaïque africaine du manioc sur un dispositif en blocs complets randomisés avec quatre répétitions. Les observations biométriques conduites sur deux cycles culturaux successifs révèlent des variations significatives de vigueur végétative et d'indice foliaire entre les génotypes testés. Les rendements en tubercules frais oscillent entre vingt-deux et trente-huit tonnes par hectare selon les variétés, le cultivar Sawasawa affichant la productivité moyenne la plus élevée en conditions pluviales non fertilisées. Les teneurs en matière sèche et en amidon s'avèrent stables au cours des saisons, répondant favorablement aux normes requises pour la transformation agro-industrielle en farine panifiable de haute qualité. L'incidence des maladies virales et bactériennes est demeurée négligeable durant toute la phase de croissance végétative. Ces performances confirment l'adaptation culturale remarquable des variétés améliorées diffusées dans les zones périurbaines. Des recommandations sont formulées aux services de vulgarisation agricole pour accélérer la multiplication végétative et la distribution des boutures saines aux groupements de petits producteurs maraîchers.
+
+Mots-clés : Manioc, Rendement agronomique, Sols sableux, Sécurité alimentaire, Batéké
+
+Abstract :
+The sustainable intensification of cassava cultivation across sandy ferrallitic soils of the Bateke plateau represents a major strategic imperative for securing food supply for the Congolese capital. This agronomic field trial evaluated phenological behavior and dry matter yield potential of five improved cultivars tolerant to African cassava mosaic disease using a randomized complete block design with four replications. Biometric evaluations performed across two consecutive cropping cycles demonstrate significant variations in vegetative vigor and leaf area index among tested genotypes. Fresh root yields ranged between twenty-two and thirty-eight tons per hectare across varieties, with cultivar Sawasawa recording the highest average productivity under rainfed unfertilized field conditions. Dry matter and starch contents proved highly consistent across seasons, comfortably meeting standard industrial criteria for agro-processing into high-quality bread-making flour. The cumulative incidence of viral and bacterial pathologies remained negligible throughout the entire vegetative development cycle. These performance metrics substantiate the excellent agro-ecological adaptation of improved clonal material deployed in peri-urban environments. Extension agencies should actively scale up vegetative propagation and clean stem cuttings distribution among smallholder farming cooperatives.
+
+Keywords : Cassava, Agronomic yield, Sandy soils, Food security, Bateke
+
+I. Introduction
+Le manioc constitue la principale source d'hydrates de carbone pour les populations urbaines de la République Démocratique du Congo (Kanku, 2021). L'amélioration des rendements variétaux demeure un objectif prioritaire de la recherche agricole (Ngoy & Malela, 2019).
+
+II. Méthodes
+Le dispositif expérimental a été implanté sur la station agronomique expérimentale selon un schéma factoriel standard.
+
+III. Résultats
+Les performances agronomiques mesurées à la récolte sont résumées ci-dessous.
+
+Tableau 1 : Rendements moyens en racines tubéreuses et teneur en matière sèche des cinq génotypes
+Cultivar   | Rendement frais (t/ha) | Matière sèche (%) | Résistance mosaïque
+Sawasawa   | 38,4                   | 34,2              | Élevée
+Mayombe    | 31,7                   | 32,8              | Élevée
+Liyayi     | 24,1                   | 29,5              | Modérée
+
+Figure I : Évolution mensuelle de l'indice foliaire moyen des variétés étudiées.
+
+IV. Discussion
+Les rendements enregistrés confirment la supériorité agronomique des clones sélectionnés en milieu tropical acide (Kanku, 2021).
+
+V. Conclusion
+La vulgarisation des clones les plus performants est recommandée pour accroître les revenus des ménages ruraux.
+
+Remerciements
+Les auteurs remercient l'équipe technique de la station agronomique pour le suivi rigoureux des parcelles expérimentales.
+
+Financement
+Cette recherche a été financée par le Programme National de Relance Agricole de la RDC.
+
+Conflit d'Intérêt
+Les auteurs déclarent formellement n'avoir aucun conflit d'intérêt dans le cadre de ces travaux.
+
+Considérations Éthiques
+Toutes les règles éthiques régissant les recherches agronomiques et environnementales ont été respectées.
+
+Contribution des Auteurs
+G.T. a planifié les essais et rédigé l'article. B.M. a collecté les données biométriques et réalisé les analyses statistiques.

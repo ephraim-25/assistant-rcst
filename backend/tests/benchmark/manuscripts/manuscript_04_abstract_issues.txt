@@ -1,0 +1,49 @@
+Titre : Modélisation cinétique de la biométhanisation des déchets ménagers urbains à Kinshasa
+Title: Kinetic Modeling of Biomethanation of Urban Household Waste in Kinshasa
+
+François Kasongo¹*, Mireille Mpoyi²
+¹ Institut Supérieur des Techniques Appliquées, Kinshasa | ORCID : 0000-0002-4567-8901
+² Université Pédagogique Nationale, Kinshasa | ORCID : 0000-0003-5678-9012
+*Auteur correspondant : francois.kasongo@ista.cd | +243 898 765 432
+
+Résumé :
+La valorisation énergétique des effluents organiques urbains représente une alternative stratégique pour atténuer la précarité énergétique et réduire l'empreinte environnementale des décharges sauvages dans les grandes agglomérations d'Afrique centrale. Cette étude expérimentale et numérique se focalise sur la méthanisation anaérobie mésophile de fractions fermentescibles issues des marchés municipaux de la ville de Kinshasa. Des essais en réacteur discontinu de laboratoire ont permis de mesurer la production cumulée de biogaz sur une période de quarante jours sous différentes conditions de charge volumique et de température régulée à trente-sept degrés Celsius. Les analyses chromatographiques en phase gazeuse indiquent une teneur moyenne en biométhane de soixante-deux pour cent, attestant d'un pouvoir calorifique supérieur adapté aux applications domestiques de cuisson et d'éclairage. L'ajustement des cinétiques de dégradation à l'aide des modèles de Gompertz modifié et du premier ordre montre une excellente concordance statistique avec les courbes de production journalière obtenues expérimentalement en laboratoire. Les paramètres cinétiques estimés révèlent une phase de latence courte de trois jours et un potentiel méthanogène maximal atteignant trois cent quarante normaux millilitres de méthane par gramme de solides volatils introduits dans le système réactionnel anaérobie. Les bilans énergétiques prévisionnels démontrent la faisabilité technique d'installations de méthanisation semi-industrielles décentralisées pour les quartiers urbains à forte densité de population. Ces résultats suggèrent d'intégrer la valorisation bioénergétique dans les plans directeurs communaux de gestion des résidus municipaux afin de substituer durablement le charbon de bois traditionnel par une source locale d'énergie renouvelable propre et d'assainir significativement l'environnement urbain par le traitement biologique des fractions organiques fermentescibles.
+
+Mots-clés : Biogaz, Méthanisation, Déchets municipaux, Modèle de Gompertz, Énergie renouvelable
+
+1. Introduction
+La croissance démographique rapide de la métropole de Kinshasa génère des volumes considérables de déchets solides organiques (Mbayo, 2018). Le traitement par digestion anaérobie offre une opportunité de valorisation énergétique majeure (Kalume & Tshimanga, 2021).
+
+2. Matériel et méthodes
+Les substrats ont été caractérisés selon les protocoles standardisés d'analyse physico-chimique.
+
+3. Résultats
+Les dynamiques de production sont consignées ci-après.
+
+Tableau I : Paramètres cinétiques de production de méthane ajustés par le modèle de Gompertz
+Substrat      | Potentiel méthanogène (mL/g SV) | Taux maximal (mL/j) | Phase de latence (j)
+Fractions FR1 | 340                             | 18,5                | 3,1
+Fractions FR2 | 295                             | 14,2                | 4,2
+
+Figure 1 : Cinétiques comparatives de production cumulée de biogaz en fonction du temps d'incubation.
+
+4. Discussion
+Les valeurs de potentiel méthanogène obtenues se situent dans la plage supérieure des résultats publiés pour des déchets municipaux tropicaux (Mbayo, 2018).
+
+5. Conclusion
+Cette recherche confirme le potentiel énergétique élevé des déchets putrescibles urbains.
+
+Remerciements
+Les auteurs expriment leur gratitude aux gestionnaires des marchés urbains de Kinshasa pour leur assistance logistique.
+
+Financement
+Les équipements de mesure ont été acquis grâce au soutien du Programme National d'Appui à la Transition Énergétique.
+
+Conflit d'Intérêt
+Les auteurs déclarent l'absence totale de conflits d'intérêts financiers ou moraux.
+
+Considérations Éthiques
+Toutes les mesures de sécurité biologique ont été rigoureusement appliquées dans le laboratoire d'expérimentation.
+
+Contribution des Auteurs
+F.K. a conçu les réacteurs et supervisé les analyses. M.M. a réalisé les simulations cinétiques et la modélisation mathématique.

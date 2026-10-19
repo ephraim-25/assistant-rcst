@@ -1,0 +1,54 @@
+Titre : Analyse des contraintes mécaniques dans les structures composites en climat tropical
+Title: Analysis of Mechanical Stress in Composite Structures in Tropical Climates
+
+Alain Lukusa¹*, Patrick Ilunga²
+¹ Faculté Polytechnique, Université de Kinshasa | ORCID : 0000-0001-2345-6789
+² Département de Génie Civil, Université de Lubumbashi | ORCID : 0000-0002-3456-7890
+*Auteur correspondant : alain.lukusa@unikin.cd | +243 820 987 654
+
+Résumé :
+L'évaluation du comportement mécanique des matériaux composites polymères soumis à des environnements tropicaux humides requiert une compréhension fine des cinétiques de dégradation hygrométrique. Cette étude examine la durabilité d'échantillons stratifiés exposés à des cycles prolongés de condensation et de rayonnement ultraviolet. Des essais de traction uniaxiale et de flexion trois points ont été réalisés sur une période expérimentale de douze mois. Les mesures expérimentales mettent en évidence une diminution progressive du module d'élasticité transversal liée à la plastification de la matrice époxy par sorption hydrique. Les observations en microscopie électronique à balayage révèlent des microfissures interfaciales à la jonction fibre-matrice consécutives aux gradients de dilatation hygrique différentielle. Des modélisations analytiques basées sur la théorie classique des stratifiés permettent de corréler avec précision les taux d'humidité résiduelle aux chutes de résistance ultime. Ces résultats offrent des données dimensionnantes utiles pour l'ingénierie des infrastructures en Afrique subsaharienne. Des recommandations sont formulées pour l'application d'enduits protecteurs hydrophobes destinés à prolonger la durée de service des éléments structuraux exposés aux intempéries.
+
+Mots-clés : Matériaux composites, Durabilité, Climat tropical, Sorption hydrique, Propriétés mécaniques
+
+Abstract :
+The evaluation of mechanical behavior of polymeric composite materials subjected to tropical humid environments requires a detailed understanding of moisture degradation kinetics. This study examines the durability of laminated specimens exposed to extended condensation and ultraviolet radiation cycles. Uniaxial tensile and three-point bending tests were performed over a twelve-month experimental period. Experimental measurements demonstrate a progressive reduction in transverse elastic modulus associated with epoxy matrix plasticization through water sorption. Scanning electron microscopy observations reveal interfacial microcracking at the fiber-matrix junction resulting from differential hygrothermal expansion gradients. Analytical modeling based on classical lamination theory provides accurate correlations between residual moisture content and ultimate strength drops. These findings deliver valuable sizing baselines for infrastructure engineering in sub-Saharan Africa. Practical recommendations are formulated regarding the application of hydrophobic protective coatings designed to extend service life for structural components exposed to tropical weathering.
+
+Keywords : Composite materials, Durability, Tropical climate, Water sorption, Mechanical properties
+
+1. Introduction
+Dans le cadre de cette recherche, nous avons analysé le comportement des matériaux composites. Notre étude démontre que l'impact de l'humidité est significatif. Les études antérieures ont établi les principes de base de la dégradation [1], tandis que des approches plus récentes explorent les mécanismes moléculaires [2]. Nos travaux prouvent que les facteurs environnementaux jouent un rôle déterminant [1, 2].
+
+2. Matériel et méthodes
+Nous avons sélectionné des échantillons standardisés pour mener les investigations expérimentales.
+
+3. Résultats
+Les essais mécaniques fournissent les résultats suivants.
+
+Tableau I : Propriétés mécaniques résiduelles après vieillissement accéléré
+Échantillon | Module d'élasticité (GPa) | Contrainte à la rupture (MPa)
+Témoin      | 45,2                      | 520
+Vieilli     | 38,7                      | 410
+
+Figure 1 : Courbes contrainte-déformation obtenues en traction après exposition.
+
+4. Discussion
+Comme nous l'avons souligné dans l'introduction, la plastification matricielle constitue le facteur dominant.
+
+5. Conclusion
+Cette recherche confirme l'importance des traitements protecteurs de surface.
+
+Remerciements
+Les auteurs remercient le Laboratoire National des Matériaux pour la mise à disposition des équipements d'essai.
+
+Financement
+Cette étude a été soutenue financièrement par le Ministère de la Recherche Scientifique de la RDC.
+
+Conflit d'Intérêt
+Les auteurs déclarent formellement n'avoir aucun conflit d'intérêt financier ou personnel.
+
+Considérations Éthiques
+Aucune expérimentation animale ou humaine n'a été mise en œuvre dans le cadre de ces travaux.
+
+Contribution des Auteurs
+A.L. a supervisé les essais mécaniques. P.I. a conduit les analyses micrographiques et la rédaction.

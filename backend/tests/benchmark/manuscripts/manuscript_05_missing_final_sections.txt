@@ -1,0 +1,39 @@
+Titre : Analyse spectrale des signaux sismiques précurseurs dans la région volcanique du Nyiragongo
+Title: Spectral Analysis of Precursory Seismic Signals in the Nyiragongo Volcanic Region
+
+Honoré Kanyinda¹*, Samuel Muteba²
+¹ Observatoire Volcanologique de Goma | ORCID : 0000-0002-6789-0123
+² Département de Physique, Université de Goma | ORCID : 0000-0003-7890-1234
+*Auteur correspondant : honore.kanyinda@ovg.cd | +243 990 123 456
+
+Résumé :
+La surveillance de l'activité sismo-volcanique dans le graben du Kivu revêt une dimension critique pour la sécurité civile des populations riveraines du volcan Nyiragongo. Cette étude analyse les caractéristiques spectrales et l'évolution temporelle des tremors volcaniques et des séismes hybrides enregistrés par le réseau télémétrique numérique entre 2019 et 2021. Le traitement numérique par transformation de Fourier à court terme et analyse par ondelettes met en évidence une migration progressive des centroïdes fréquentiels vers les basses fréquences au cours des semaines précédant les réactivations magmatiques majeures. Les polarisations d'ondes cisaillantes révèlent des variations significatives d'anisotropie crustale associées à la mise en pression de conduits magmatiques superficiels. La détection automatisée d'événements à longue période permet d'identifier des résonances acoustiques entretenues par la dynamique des dégazages fluides intra-cratériques. Ces résultats fournissent des indicateurs précurseurs robustes pour l'évaluation quantitative du niveau d'aléa volcanique à court terme. Ils confirment l'intérêt opérationnel d'intégrer l'analyse spectrale automatisée en temps réel au sein des systèmes d'alerte précoce pour améliorer la résilience des agglomérations urbaines menacées par les coulées basaltiques.
+
+Mots-clés : Volcanologie, Tremor sismique, Analyse spectrale, Nyiragongo, Alerte précoce
+
+Abstract :
+Monitoring volcano-seismic dynamics across the Kivu rift basin represents a critical operational priority for civil protection of populations living in proximity to the Nyiragongo stratovolcano. This study analyzes spectral characteristics and temporal evolutions of volcanic tremors and hybrid earthquakes recorded by digital telemetric monitoring arrays between 2019 and 2021. Digital signal processing via short-time Fourier transforms and continuous wavelet analysis demonstrates progressive downward migration of frequency centroids during weeks preceding major magmatic reactivations. Shear-wave polarization determinations reveal significant alterations in crustal seismic anisotropy linked to pressure buildup within shallow sub-volcanic conduits. Automated classification of long-period events identifies acoustic resonance modes maintained by fluid degassing kinetics inside the summit crater lava lake system. These findings yield reliable precursory metrics for quantitative short-term volcanic hazard assessments across the northern Kivu basin. They substantiate the operational utility of integrating automated real-time spectral analytics within regional early warning systems to enhance urban community resilience against hazardous basaltic fissure eruptions.
+
+Keywords : Volcanology, Volcanic tremor, Spectral analysis, Nyiragongo, Early warning
+
+1. Introduction
+La chaîne des Virunga abrite des systèmes volcaniques hautement actifs caractérisés par des éruptions fissurales rapides (Kavotha, 2020). L'anticipation des montées magmatiques repose sur l'interprétation fine des signaux sismiques d'origine magmatique (Barabwiriza & Mukandila, 2019).
+
+2. Matériel et méthodes
+Les séries temporelles ont été acquises par six stations sismologiques large-bande équipées de numériseurs vingt-quatre bits géolocalisés par GPS.
+
+3. Résultats
+Les densités spectrales de puissance sont présentées dans la synthèse ci-après.
+
+Tableau I : Caractéristiques spectrales moyennes des différents types d'événements enregistrés
+Type d'événement | Fréquence dominante (Hz) | Facteur de qualité Q | Amplitude relative
+Tremor continu   | 1,8                      | 45                   | Forte
+Longue période   | 0,7                      | 120                  | Modérée
+
+Figure 1 : Spectrogramme temps-fréquence d'un épisode de dégazage magmatique soutenu.
+
+4. Discussion
+L'abaissement spectral concorde avec les prédictions des modèles de résonance hydroacoustique dans les fractures magmatiques ouvertes (Kavotha, 2020).
+
+5. Conclusion
+Le suivi spectral continu fournit une fenêtre d'anticipation déterminante pour la gestion des crises volcaniques.
