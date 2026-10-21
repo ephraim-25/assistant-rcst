@@ -111,23 +111,23 @@ export const ConstitutionGuide: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Intro banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-sky-950/60 to-slate-900 border border-sky-800/50 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
+      <div className="bg-slate-900 border border-sky-800/50 rounded-lg p-6 sm:p-8 mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
               <Scale className="w-3.5 h-3.5" />
               Charte & Normes Constitutionnelles RCST
             </div>
-            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
               Constitution de la Revue Congolaise des Sciences & Technologies
             </h2>
             <p className="text-sm text-slate-300 max-w-3xl leading-relaxed">
               Ce recueil constitue la référence normative absolue pour l’acceptation, l’audit et la publication de tout manuscrit scientifique. Tout article soumis fait l’objet d’un audit préalable opposable par l’Auditeur Éditorial avant transmission au comité de lecture par les pairs.
             </p>
           </div>
-          <div className="flex-shrink-0 bg-slate-950/80 border border-slate-800 rounded-xl p-4 text-center">
-            <div className="text-2xl font-bold font-serif text-amber-400">6 Directives</div>
-            <div className="text-[11px] text-slate-400 uppercase tracking-wider font-medium">Contrôle de Conformité</div>
+          <div className="flex-shrink-0 bg-slate-950/80 border border-slate-800 rounded-md p-4 text-center">
+            <div className="text-2xl font-bold text-amber-400">6 Directives</div>
+            <div className="text-xs text-slate-400 font-medium">Contrôle de Conformité</div>
           </div>
         </div>
       </div>
@@ -141,9 +141,9 @@ export const ConstitutionGuide: React.FC = () => {
             <button
               key={rule.id}
               onClick={() => setActiveRule(rule.id)}
-              className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between gap-2.5 ${
+              className={`p-3.5 rounded-md border text-left transition-colors flex flex-col justify-between gap-2.5 ${
                 isSelected
-                  ? 'bg-amber-500/10 border-amber-500/60 text-white shadow-lg shadow-amber-500/10 ring-1 ring-amber-500/40'
+                  ? 'bg-amber-500/10 border-amber-500/60 text-white ring-1 ring-amber-500/40'
                   : 'bg-slate-900/60 border-slate-800/80 text-slate-300 hover:bg-slate-850 hover:border-slate-700'
               }`}
             >
@@ -151,11 +151,11 @@ export const ConstitutionGuide: React.FC = () => {
                 <span className={`p-1.5 rounded-lg ${isSelected ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>
                   <Icon className="w-3.5 h-3.5" />
                 </span>
-                <span className="text-[10px] font-mono font-bold text-amber-400/90">0{rule.id}</span>
+                <span className="text-xs font-mono font-bold text-amber-400/90">0{rule.id}</span>
               </div>
               <div>
                 <h4 className="text-xs font-bold leading-tight line-clamp-2">{rule.title}</h4>
-                <p className="text-[10px] text-slate-400 mt-1 line-clamp-1">{rule.subtitle}</p>
+                <p className="text-xs text-slate-400 mt-1 line-clamp-1">{rule.subtitle}</p>
               </div>
             </button>
           );
@@ -163,13 +163,13 @@ export const ConstitutionGuide: React.FC = () => {
       </div>
 
       {/* Detailed rule view */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+      <div className="bg-slate-900/90 border border-slate-800 rounded-lg p-6 sm:p-8">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-6 mb-6 border-b border-slate-800 gap-4">
           <div>
-            <span className="text-xs font-mono font-semibold text-amber-400 tracking-wider uppercase">
+            <span className="text-xs font-mono font-semibold text-amber-400">
               {current.tag}
             </span>
-            <h3 className="text-xl sm:text-2xl font-serif font-bold text-white mt-1">
+            <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">
               {current.title}
             </h3>
             <p className="text-sm text-slate-400 mt-1">{current.subtitle}</p>
@@ -186,7 +186,7 @@ export const ConstitutionGuide: React.FC = () => {
 
         {/* Requirements */}
         <div className="mb-8">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-300 mb-3 flex items-center gap-2">
+          <h4 className="text-xs font-semibold text-amber-300 mb-3 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             Directives de la Constitution RCST
           </h4>
@@ -202,8 +202,8 @@ export const ConstitutionGuide: React.FC = () => {
 
         {/* Comparative Bad / Good */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="border border-rose-900/50 bg-rose-950/20 rounded-xl p-5">
-            <div className="flex items-center gap-2 text-rose-400 font-semibold text-xs uppercase tracking-wider mb-3">
+          <div className="border border-rose-900/50 bg-rose-950/20 rounded-md p-5">
+            <div className="flex items-center gap-2 text-rose-400 font-semibold text-xs mb-3">
               <XCircle className="w-4 h-4" />
               À Proscrire (Motif de rejet immédiat)
             </div>
@@ -212,8 +212,8 @@ export const ConstitutionGuide: React.FC = () => {
             </pre>
           </div>
 
-          <div className="border border-emerald-900/50 bg-emerald-950/20 rounded-xl p-5">
-            <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs uppercase tracking-wider mb-3">
+          <div className="border border-emerald-900/50 bg-emerald-950/20 rounded-md p-5">
+            <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs mb-3">
               <CheckCircle2 className="w-4 h-4" />
               Standard d'Excellence Requis (Modèle Conforme)
             </div>

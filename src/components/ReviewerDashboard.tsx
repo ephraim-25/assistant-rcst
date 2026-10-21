@@ -63,28 +63,28 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
     switch (status) {
       case 'pending_audit':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-400 border border-amber-500/30">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-400 border border-amber-500/30">
             <Clock className="w-3 h-3" />
             En attente d'audit
           </span>
         );
       case 'under_review':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-sky-500/15 text-sky-400 border border-sky-500/30">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-500/15 text-sky-400 border border-sky-500/30">
             <Sparkles className="w-3 h-3" />
             En cours de relecture
           </span>
         );
       case 'report_validated':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
             <CheckCircle2 className="w-3 h-3" />
             Rapport validé
           </span>
         );
       case 'transmitted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/30">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-500/15 text-purple-400 border border-purple-500/30">
             <Send className="w-3 h-3" />
             Transmis à l'auteur
           </span>
@@ -95,18 +95,18 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
   return (
     <div className="w-full max-w-6xl mx-auto px-6 py-8 space-y-8 animate-fadeIn text-slate-100">
       {/* ─── BANDEAU SUPÉRIEUR DE BIENVENUE & PROFIL ─── */}
-      <div className="rounded-3xl bg-gradient-to-r from-[#111420] via-[#0e111a] to-[#141824] border border-white/10 p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-2xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="rounded-xl bg-slate-900 border border-white/10 p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="absolute right-0 top-0 w-96 h-96 bg-sky-500/10 rounded-full pointer-events-none" />
 
         <div className="flex items-center gap-4 z-10">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-600 to-sky-400 text-slate-950 font-bold text-2xl flex items-center justify-center shadow-lg shadow-sky-500/20">
+          <div className="w-16 h-16 rounded-lg bg-slate-100 hover:bg-white text-slate-950 font-bold text-2xl flex items-center justify-center">
             {user?.name ? user.name.charAt(0).toUpperCase() : 'R'}
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">{user?.name}</h1>
-              <span className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[10px] font-mono uppercase">
-                🔬 Reviewer Assermenté
+              <span className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs font-mono">
+                Reviewer Assermenté
               </span>
             </div>
             <p className="text-xs text-slate-400 flex items-center gap-2">
@@ -122,7 +122,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
         <div className="flex items-center gap-3 z-10 w-full sm:w-auto">
           <button
             onClick={onOpenProfile}
-            className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-200 hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-initial px-4 py-2.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-200 hover:text-white transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
             <span>Modifier Mon Profil</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -133,49 +133,49 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
       {/* ─── KPIS & STATISTIQUES PERSONNELLES ─── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1 : Manuscrits audités */}
-        <div className="p-5 rounded-2xl bg-[#0c0e15] border border-white/10 flex flex-col justify-between shadow-lg">
+        <div className="p-5 rounded-lg bg-slate-950 border border-white/10 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-3">
             <span>Manuscrits Audités</span>
             <FileText className="w-4 h-4 text-sky-400" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white font-mono">{totalAuditsCount}</span>
+            <span className="text-2xl sm:text-3xl font-semibold text-white font-mono">{totalAuditsCount}</span>
             <span className="text-xs text-emerald-400 font-medium">+3 cette semaine</span>
           </div>
         </div>
 
         {/* KPI 2 : Score moyen de conformité */}
-        <div className="p-5 rounded-2xl bg-[#0c0e15] border border-white/10 flex flex-col justify-between shadow-lg">
+        <div className="p-5 rounded-lg bg-slate-950 border border-white/10 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-3">
             <span>Score Moyen Révisé</span>
             <BarChart3 className="w-4 h-4 text-amber-400" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white font-mono">{averageScore}%</span>
+            <span className="text-2xl sm:text-3xl font-semibold text-white font-mono">{averageScore}%</span>
             <span className="text-xs text-slate-400">Normes RCST & IMRAD</span>
           </div>
         </div>
 
         {/* KPI 3 : Taux détection style & APA 7 */}
-        <div className="p-5 rounded-2xl bg-[#0c0e15] border border-white/10 flex flex-col justify-between shadow-lg">
+        <div className="p-5 rounded-lg bg-slate-950 border border-white/10 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-3">
             <span>Précision Style & APA 7</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white font-mono">{styleDetectionRate}</span>
+            <span className="text-2xl sm:text-3xl font-semibold text-white font-mono">{styleDetectionRate}</span>
             <span className="text-xs text-emerald-400">Haute fidélité</span>
           </div>
         </div>
 
         {/* KPI 4 : Quota d'audits journalier */}
-        <div className="p-5 rounded-2xl bg-[#0c0e15] border border-white/10 flex flex-col justify-between shadow-lg">
+        <div className="p-5 rounded-lg bg-slate-950 border border-white/10 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-3">
             <span>Quota Quotidien IA</span>
             <Sparkles className="w-4 h-4 text-purple-400" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-white font-mono">
+            <span className="text-2xl sm:text-3xl font-semibold text-white font-mono">
               {dailyQuotaUsed} / {dailyQuotaMax}
             </span>
             <span className="text-xs text-slate-400">audits restants</span>
@@ -184,7 +184,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
       </div>
 
       {/* ─── FILE DE TRAITEMENT (MY QUEUE) ─── */}
-      <div className="rounded-3xl bg-[#0c0e15] border border-white/10 p-6 shadow-2xl space-y-6">
+      <div className="rounded-xl bg-slate-950 border border-white/10 p-6 space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
           <div>
             <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
@@ -207,14 +207,14 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Rechercher manuscrit..."
-                className="w-full bg-[#121520] border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500/50"
+                className="w-full bg-slate-900 border border-white/10 rounded-md pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500/50"
               />
             </div>
 
             <select
               value={selectedStatusFilter}
               onChange={(e) => setSelectedStatusFilter(e.target.value)}
-              className="bg-[#121520] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500/50 cursor-pointer"
+              className="bg-slate-900 border border-white/10 rounded-md px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500/50 cursor-pointer"
             >
               <option value="all">Tous les états</option>
               <option value="pending_audit">En attente d'audit</option>
@@ -235,15 +235,15 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
             {filteredQueue.map((item) => (
               <div
                 key={item.id}
-                className="p-4 rounded-2xl bg-[#111420]/70 hover:bg-[#141826] border border-white/5 hover:border-sky-500/30 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+                className="p-4 rounded-lg bg-slate-900/70 hover:bg-slate-900 border border-white/5 hover:border-sky-500/30 transition-colors flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
               >
                 <div className="flex-1 min-w-0 space-y-1.5">
                   <div className="flex items-center gap-2.5 flex-wrap">
                     {getStatusBadge(item.status)}
-                    <span className="text-[11px] font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded">
+                    <span className="text-xs font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded">
                       {item.category}
                     </span>
-                    <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                    <span className="text-xs text-slate-500 flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
                       Soumis le {item.submittedDate}
                     </span>
@@ -264,7 +264,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
                   <select
                     value={item.status}
                     onChange={(e) => updateQueueItemStatus(item.id, e.target.value as QueueItemStatus)}
-                    className="bg-[#161a28] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none cursor-pointer"
+                    className="bg-slate-900 border border-white/10 rounded-md px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none cursor-pointer"
                   >
                     <option value="pending_audit">Attente audit</option>
                     <option value="under_review">En cours</option>
@@ -275,7 +275,7 @@ export const ReviewerDashboard: React.FC<ReviewerDashboardProps> = ({
                   {/* Bouton pour lancer l'audit direct dans le Cockpit */}
                   <button
                     onClick={() => onStartAudit(item.manuscriptText, item.sourceFilename)}
-                    className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md shadow-sky-500/20 transition-all cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-md bg-slate-100 hover:bg-white text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Play className="w-3 h-3 fill-current" />
                     <span>Auditer dans Cockpit</span>

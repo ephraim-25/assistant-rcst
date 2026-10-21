@@ -30,10 +30,10 @@ interface GovernanceContextType {
   logAuditEvent: (log: Omit<SystemAuditLog, 'id' | 'timestamp'>) => void;
 }
 
-const HISTORY_STORAGE_KEY = 'rcst_audit_history_v2';
-const QUEUE_STORAGE_KEY = 'rcst_review_queue_v2';
+const HISTORY_STORAGE_KEY = 'rcst_audit_history_v3';
+const QUEUE_STORAGE_KEY = 'rcst_review_queue_v3';
 const AI_CONFIG_STORAGE_KEY = 'rcst_ai_governance_config_v2';
-const LOGS_STORAGE_KEY = 'rcst_system_audit_logs_v2';
+const LOGS_STORAGE_KEY = 'rcst_system_audit_logs_v3';
 
 const DEFAULT_AI_CONFIG: AiGovernanceConfig = {
   defaultModel: 'gemini-2.5-flash',
@@ -150,229 +150,13 @@ function createMockReport(
 }
 
 // Exemples initiaux pour peupler l'historique de manière représentative
-const INITIAL_HISTORY: AuditHistoryItem[] = [
-  {
-    id: 'hist-001',
-    userId: 'usr-admin-001',
-    userName: 'Prof. Marcel Kalonji',
-    title: 'Évaluation épidémiologique du paludisme à Kinshasa',
-    sourceFilename: 'Manuscrit_Paludisme_Kingasani.docx',
-    conformityScore: 42,
-    status: 'major_revisions',
-    timestamp: 'Aujourd’hui, 10:24',
-    createdAtMs: Date.now() - 1000 * 60 * 60 * 2,
-    manuscriptText: SAMPLE_MANUSCRIPTS[0].text,
-    report: createMockReport(
-      42,
-      'Refusé - Modifications majeures requises',
-      'Manuscrit comportant des non-conformités critiques : utilisation récurrente du pronom « nous », formatage bibliographique [1] non conforme aux normes APA 7, absence d’identifiant ORCID et omissions des sections finales.',
-      'Modifications majeures requises avant réexamen par le comité',
-      'RCST-2026-AUDIT-084',
-      'Aujourd’hui, 10:24'
-    ),
-    isArchived: false,
-    tokensUsed: 3120,
-  },
-  {
-    id: 'hist-002',
-    userId: 'usr-rev-002',
-    userName: 'Dr. Nadine Masika',
-    title: 'Optimisation des bétons de pouzzolane au Nord-Kivu',
-    sourceFilename: 'Pouzzolane_Goma_GenieCivil.docx',
-    conformityScore: 78,
-    status: 'minor_revisions',
-    timestamp: 'Aujourd’hui, 08:15',
-    createdAtMs: Date.now() - 1000 * 60 * 60 * 4,
-    manuscriptText: SAMPLE_MANUSCRIPTS[1]?.text || SAMPLE_MANUSCRIPTS[0].text,
-    report: createMockReport(
-      78,
-      'Conforme avec réserves',
-      'Excellente tenue rédactionnelle globale. Quelques réserves sur la numérotation des tableaux qui doivent être en chiffres romains et insertion requise de l’ORCID du 3ème co-auteur.',
-      'Modifications mineures requises',
-      'RCST-2026-AUDIT-083',
-      'Aujourd’hui, 08:15'
-    ),
-    isArchived: false,
-    tokensUsed: 2940,
-  },
-  {
-    id: 'hist-003',
-    userId: 'usr-admin-001',
-    userName: 'Prof. Marcel Kalonji',
-    title: 'Audit express : Structure du titre et résumé bilingue',
-    sourceFilename: 'Extrait_Resume_Photovoltaique.docx',
-    conformityScore: 88,
-    status: 'accepted',
-    timestamp: 'Il y a 3 jours',
-    createdAtMs: Date.now() - 1000 * 60 * 60 * 24 * 3,
-    manuscriptText: SAMPLE_MANUSCRIPTS[0].text,
-    report: createMockReport(
-      88,
-      'Conforme',
-      'Titre bilingue conforme, absence de guillemets superflus, résumé de 234 mots sans références bibliographiques.',
-      'Conforme aux normes de publication RCST',
-      'RCST-2026-AUDIT-079',
-      '11 Oct. 2026'
-    ),
-    isArchived: false,
-    tokensUsed: 2150,
-  },
-  {
-    id: 'hist-004',
-    userId: 'usr-rev-003',
-    userName: 'Dr. Benjamin Lukusa',
-    title: 'Vérification bibliographique APA 7ème édition',
-    sourceFilename: 'Bibliographie_Hydraulique_KongoCentral.pdf',
-    conformityScore: 62,
-    status: 'minor_revisions',
-    timestamp: '08 Oct. 2026',
-    createdAtMs: Date.now() - 1000 * 60 * 60 * 24 * 6,
-    manuscriptText: SAMPLE_MANUSCRIPTS[0].text,
-    report: createMockReport(
-      62,
-      'Conforme avec réserves',
-      'Présence de crochets [3], [4] résiduels dans la section Discussion à convertir en format APA 7.',
-      'Modifications mineures - Harmonisation APA 7',
-      'RCST-2026-AUDIT-071',
-      '08 Oct. 2026'
-    ),
-    isArchived: false,
-    tokensUsed: 1980,
-  },
-  {
-    id: 'hist-005',
-    userId: 'usr-admin-001',
-    userName: 'Prof. Marcel Kalonji',
-    title: 'Modélisation du potentiel minier du Katanga',
-    sourceFilename: 'Geologie_Katanga_2026.docx',
-    conformityScore: 91,
-    status: 'accepted',
-    timestamp: '25 Sept. 2026',
-    createdAtMs: Date.now() - 1000 * 60 * 60 * 24 * 19,
-    manuscriptText: SAMPLE_MANUSCRIPTS[0].text,
-    report: createMockReport(
-      91,
-      'Conforme',
-      'Conformité exemplaire à la Constitution de la RCST.',
-      'Accepté pour publication dans le prochain numéro',
-      'RCST-2026-AUDIT-055',
-      '25 Sept. 2026'
-    ),
-    isArchived: false,
-    tokensUsed: 3400,
-  }
-];
+const INITIAL_HISTORY: AuditHistoryItem[] = [];
 
 // File de traitement initiale pour les Reviewers
-const INITIAL_QUEUE: ReviewQueueItem[] = [
-  {
-    id: 'queue-001',
-    title: 'Étude hydrogéologique des aquifères de la plaine de la Ruzizi',
-    sourceFilename: 'Hydrogeo_Ruzizi_SudKivu.docx',
-    authorName: 'Dr. Éric Mukendi et al.',
-    assignedReviewerId: 'usr-rev-002',
-    assignedReviewerName: 'Dr. Nadine Masika',
-    submittedDate: '13 Oct. 2026',
-    status: 'pending_audit',
-    priority: 'high',
-    category: 'Sciences de la Terre & Environnement',
-    manuscriptText: SAMPLE_MANUSCRIPTS[0].text,
-  },
-  {
-    id: 'queue-002',
-    title: 'Caractérisation mécanique des essences de bois d’Équateur pour la construction',
-    sourceFilename: 'Bois_Equateur_Mecanique.docx',
-    authorName: 'Prof. Justin Banza et al.',
-    assignedReviewerId: 'usr-rev-003',
-    assignedReviewerName: 'Dr. Benjamin Lukusa',
-    submittedDate: '11 Oct. 2026',
-    status: 'under_review',
-    priority: 'normal',
-    score: 68,
-    category: 'Génie Civil & Matériaux',
-    manuscriptText: SAMPLE_MANUSCRIPTS[1]?.text || SAMPLE_MANUSCRIPTS[0].text,
-  },
-  {
-    id: 'queue-003',
-    title: 'Prévalence des souches résistantes de Salmonella à Lubumbashi',
-    sourceFilename: 'Salmonella_Microbio_Lubumbashi.docx',
-    authorName: 'Dr. Claire Tshilobo et al.',
-    assignedReviewerId: 'usr-rev-002',
-    assignedReviewerName: 'Dr. Nadine Masika',
-    submittedDate: '09 Oct. 2026',
-    status: 'report_validated',
-    priority: 'high',
-    score: 84,
-    category: 'Sciences Médicales & Microbiologie',
-    manuscriptText: SAMPLE_MANUSCRIPTS[0].text,
-  },
-  {
-    id: 'queue-004',
-    title: 'Algorithmes de détection des pannes sur le réseau SNEL Kinshasa',
-    sourceFilename: 'SmartGrid_SNEL_Kinshasa.docx',
-    authorName: 'Ir. Patrick Kanyinda et al.',
-    assignedReviewerId: 'usr-admin-001',
-    assignedReviewerName: 'Prof. Marcel Kalonji',
-    submittedDate: '05 Oct. 2026',
-    status: 'transmitted',
-    priority: 'low',
-    score: 92,
-    category: 'Génie Électrique & Informatique',
-    manuscriptText: SAMPLE_MANUSCRIPTS[0].text,
-  }
-];
+const INITIAL_QUEUE: ReviewQueueItem[] = [];
 
 // Logs initiaux de traçabilité système
-const INITIAL_LOGS: SystemAuditLog[] = [
-  {
-    id: 'log-001',
-    userId: 'usr-admin-001',
-    userName: 'Prof. Marcel Kalonji',
-    userRole: 'admin',
-    manuscriptTitle: 'Évaluation épidémiologique du paludisme à Kinshasa',
-    timestamp: '14/10/2026 10:24',
-    tokensUsed: 3120,
-    score: 42,
-    decision: 'Modifications majeures',
-    modelUsed: 'gemini-2.5-flash',
-  },
-  {
-    id: 'log-002',
-    userId: 'usr-rev-002',
-    userName: 'Dr. Nadine Masika',
-    userRole: 'reviewer',
-    manuscriptTitle: 'Optimisation des bétons de pouzzolane au Nord-Kivu',
-    timestamp: '14/10/2026 08:15',
-    tokensUsed: 2940,
-    score: 78,
-    decision: 'Modifications mineures',
-    modelUsed: 'gemini-2.5-flash',
-  },
-  {
-    id: 'log-003',
-    userId: 'usr-rev-002',
-    userName: 'Dr. Nadine Masika',
-    userRole: 'reviewer',
-    manuscriptTitle: 'Prévalence des souches résistantes de Salmonella à Lubumbashi',
-    timestamp: '12/10/2026 14:40',
-    tokensUsed: 3200,
-    score: 84,
-    decision: 'Conforme avec réserves',
-    modelUsed: 'gemini-2.5-flash',
-  },
-  {
-    id: 'log-004',
-    userId: 'usr-rev-003',
-    userName: 'Dr. Benjamin Lukusa',
-    userRole: 'reviewer',
-    manuscriptTitle: 'Vérification bibliographique APA 7ème édition',
-    timestamp: '08/10/2026 11:15',
-    tokensUsed: 1980,
-    score: 62,
-    decision: 'Modifications mineures',
-    modelUsed: 'gemini-2.5-flash',
-  }
-];
+const INITIAL_LOGS: SystemAuditLog[] = [];
 
 const GovernanceContext = createContext<GovernanceContextType | undefined>(undefined);
 

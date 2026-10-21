@@ -170,10 +170,10 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-sky-950/40 to-slate-900 border border-sky-800/40 rounded-2xl p-6 sm:p-7 shadow-xl">
+      <div className="bg-slate-900 border border-sky-800/40 rounded-lg p-6 sm:p-7">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
               <FileCheck className="w-3.5 h-3.5" />
               Soumission Multi-formats (Word, PDF, TXT, MD)
             </div>
@@ -188,7 +188,7 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
           <div className="flex-shrink-0">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/80 text-xs font-semibold flex items-center gap-2 transition-all shadow-md cursor-pointer"
+              className="px-4 py-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/80 text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
             >
               <Upload className="w-4 h-4 text-sky-400" />
               <span>Importer (.docx, .pdf, .txt, .md)</span>
@@ -210,7 +210,7 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => !fileDetails && fileInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-xl p-5 text-center transition-all cursor-pointer ${
+        className={`border-2 border-dashed rounded-md p-5 text-center transition-colors cursor-pointer ${
           dragActive
             ? 'border-amber-400 bg-amber-500/10'
             : fileDetails
@@ -226,17 +226,17 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
         ) : fileDetails ? (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center font-bold text-xs uppercase font-mono">
+              <div className="w-10 h-10 rounded-lg bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center font-bold text-xs font-mono">
                 {fileDetails.extension.replace('.', '')}
               </div>
               <div>
                 <div className="text-xs font-bold text-white flex items-center gap-2">
                   <span>{fileDetails.name}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                  <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">
                     {fileDetails.sizeKb} Ko • {fileDetails.wordCount} mots
                   </span>
                 </div>
-                <p className="text-[11px] text-emerald-400/90 mt-0.5">
+                <p className="text-xs text-emerald-400/90 mt-0.5">
                   ✓ Document extrait avec succès. Prêt pour l'audit constitutionnel RCST.
                 </p>
               </div>
@@ -257,7 +257,7 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
               <Upload className="w-4 h-4 text-amber-400" />
               <span>Glissez-déposez ici votre manuscrit Word (.docx), PDF (.pdf), Texte (.txt) ou Markdown (.md)</span>
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs text-slate-500">
               Extraction instantanée du texte avec préservation des sections et des métadonnées
             </p>
           </div>
@@ -265,13 +265,13 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
       </div>
 
       {/* Preset Academic Samples Selector */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-md p-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-semibold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+          <span className="text-xs font-semibold text-amber-300 flex items-center gap-1.5">
             <BookOpen className="w-3.5 h-3.5" />
             Échantillons types de test (Constitution RCST) :
           </span>
-          <span className="text-[11px] text-slate-400">Cliquez pour tester l'auditeur</span>
+          <span className="text-xs text-slate-400">Cliquez pour tester l'auditeur</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -279,7 +279,7 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
             <button
               key={sample.id}
               onClick={() => loadSample(sample)}
-              className={`p-3 rounded-lg border text-left transition-all flex flex-col justify-between ${
+              className={`p-3 rounded-lg border text-left transition-colors flex flex-col justify-between ${
                 selectedSampleId === sample.id
                   ? 'bg-amber-500/10 border-amber-500/60 ring-1 ring-amber-500/30'
                   : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/80'
@@ -287,7 +287,7 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                     sample.id === 'sample-rejected' 
                       ? 'bg-rose-950 text-rose-300 border border-rose-800' 
                       : sample.id === 'sample-reserves'
@@ -298,7 +298,7 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
                   </span>
                 </div>
                 <h4 className="text-xs font-bold text-slate-200 line-clamp-1">{sample.name}</h4>
-                <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">{sample.description}</p>
+                <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">{sample.description}</p>
               </div>
             </button>
           ))}
@@ -306,15 +306,15 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
       </div>
 
       {/* Editor Main Box */}
-      <div className="bg-slate-900/95 border border-slate-800 rounded-2xl p-5 shadow-2xl">
+      <div className="bg-slate-900/95 border border-slate-800 rounded-lg p-5">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3 pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-amber-400" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <span className="text-xs font-semibold text-slate-300">
               Texte Intégral Extrait du Manuscrit
             </span>
             {fileDetails && (
-              <span className="text-[10px] px-2 py-0.5 rounded bg-sky-950 border border-sky-800 text-sky-400 font-mono">
+              <span className="text-xs px-2 py-0.5 rounded bg-sky-950 border border-sky-800 text-sky-400 font-mono">
                 Source : {fileDetails.name}
               </span>
             )}
@@ -349,15 +349,15 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
           }}
           placeholder="Collez ici le texte complet du manuscrit ou déposez un fichier .docx / .pdf ci-dessus..."
           rows={16}
-          className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono leading-relaxed resize-y min-h-[320px]"
+          className="w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-xs sm:text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono leading-relaxed resize-y min-h-[320px]"
         />
 
         {/* Live Heuristic Inspection Bar */}
-        <div className="mt-4 p-3 rounded-xl bg-slate-950/70 border border-slate-850 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="mt-4 p-3 rounded-md bg-slate-950/70 border border-slate-850 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="text-[11px] uppercase font-mono text-slate-400 font-bold">Pré-contrôle instantané :</span>
+            <span className="text-xs font-mono text-slate-400 font-bold">Pré-contrôle instantané :</span>
 
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium ${
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
               stats.personalPronounsCount === 0 
                 ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/60'
                 : 'bg-rose-950/80 text-rose-300 border border-rose-800/60'
@@ -365,7 +365,7 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
               {stats.personalPronounsCount === 0 ? '✓ Style impersonnel' : `⚠️ ${stats.personalPronounsCount} pronoms subjectifs`}
             </span>
 
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium ${
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
               stats.hasOrcid 
                 ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/60'
                 : 'bg-rose-950/80 text-rose-300 border border-rose-800/60'
@@ -373,7 +373,7 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
               {stats.hasOrcid ? '✓ ORCID 16 chiffres' : '⚠️ ORCID manquant'}
             </span>
 
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium ${
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
               stats.hasPhone 
                 ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/60'
                 : 'bg-amber-950/80 text-amber-300 border border-amber-800/60'
@@ -381,7 +381,7 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
               {stats.hasPhone ? '✓ Téléphone' : '⚠️ Téléphone manquant'}
             </span>
 
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium ${
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
               stats.hasBilingual 
                 ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/60'
                 : 'bg-amber-950/80 text-amber-300 border border-amber-800/60'
@@ -389,7 +389,7 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
               {stats.hasBilingual ? '✓ Bilingue Résumé/Abstract' : '⚠️ Bilinguisme à vérifier'}
             </span>
 
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium ${
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
               stats.hasEndSections
                 ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/60'
                 : 'bg-amber-950/80 text-amber-300 border border-amber-800/60'
@@ -398,7 +398,7 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
             </span>
           </div>
 
-          <div className="text-[11px] text-slate-500 font-mono">
+          <div className="text-xs text-slate-500 font-mono">
             Constitution RCST 2026
           </div>
         </div>
@@ -413,7 +413,7 @@ export const ManuscriptEditor: React.FC<ManuscriptEditorProps> = ({
           <button
             onClick={() => onAudit(fileDetails?.name)}
             disabled={isLoading || !text.trim() || stats.words < 20}
-            className="w-full sm:w-auto px-7 py-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-serif font-black text-sm tracking-wide flex items-center justify-center gap-2.5 shadow-xl shadow-amber-500/20 transition-all disabled:opacity-50 cursor-pointer"
+            className="w-full sm:w-auto px-7 py-3 rounded-md bg-slate-100 hover:bg-white text-slate-950 font-serif font-semibold text-sm flex items-center justify-center gap-2.5 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isLoading ? (
               <>

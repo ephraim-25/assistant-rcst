@@ -32,6 +32,8 @@ export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
 }) => {
   const [activeRefId, setActiveRefId] = useState<number | null>(null);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(true);
+  // Sous 1024 px, un seul volet à la fois (manuscrit, constats ou assistant)
+  const [pane, setPane] = useState<'text' | 'report' | 'chat'>('report');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
   // Extraire les références numérotées à partir du rapport
@@ -47,13 +49,13 @@ export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-65px)] w-full overflow-hidden bg-[#0a0c10] text-slate-100">
+    <div className="flex flex-col h-full w-full overflow-hidden bg-slate-950 text-slate-100">
       {/* Barre supérieure du Cockpit Éditorial */}
-      <header className="shrink-0 h-14 bg-[#12141c] border-b border-white/10 px-4 sm:px-6 flex items-center justify-between z-20 shadow-sm">
+      <header className="shrink-0 h-14 bg-slate-900 border-b border-white/10 px-4 sm:px-6 flex items-center justify-between z-20">
         <div className="flex items-center gap-3">
           <button
             onClick={onReset}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-300 hover:text-white transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
             title="Revenir à l'accueil"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -83,17 +85,25 @@ export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
 
           {/* Bouton de bascule du tiroir de Chat */}
           <button
-            onClick={() => setIsChatOpen(!isChatOpen)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
+            onClick={() => {
+              // Mobile : le bouton ouvre le volet Assistant ; ordinateur : il affiche ou masque la colonne
+              if (window.matchMedia('(max-width: 1023px)').matches) {
+                setIsChatOpen(true);
+                setPane('chat');
+              } else {
+                setIsChatOpen(!isChatOpen);
+              }
+            }}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer ${
               isChatOpen
-                ? 'bg-sky-500/20 border-sky-500/40 text-sky-300 shadow-sm'
+                ? 'bg-sky-500/20 border-sky-500/40 text-sky-300'
                 : 'bg-white/5 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white'
             }`}
           >
             <MessageSquare className="w-3.5 h-3.5 text-sky-400" />
             <span className="hidden sm:inline">Assistant Éditorial</span>
             {chatHistory.length > 0 && (
-              <span className="w-4 h-4 rounded-full bg-sky-500 text-slate-950 font-bold text-[9px] flex items-center justify-center">
+              <span className="w-4 h-4 rounded-full bg-sky-500 text-slate-950 font-bold text-xs flex items-center justify-center">
                 {chatHistory.length}
               </span>
             )}
@@ -101,10 +111,27 @@ export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
         </div>
       </header>
 
+      {/* Sélecteur de volet (mobile et tablette) */}
+      <div role="tablist" className="flex shrink-0 border-b border-white/10 bg-slate-950 lg:hidden">
+        {([['text', 'Manuscrit'], ['report', 'Constats'], ['chat', 'Assistant']] as const).map(([id, label]) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={pane === id}
+            onClick={() => setPane(id)}
+            className={`h-11 flex-1 text-sm font-medium ${
+              pane === id ? 'border-b-2 border-slate-100 text-slate-100' : 'text-slate-400'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* Contenu principal en mode Split-Screen / Multicolonne */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Colonne 1 : Visualiseur de manuscrit avec surbrillance Word-like (Gauche) */}
-        <div className="flex-1 min-w-[340px] h-full overflow-hidden border-r border-white/10">
+        <div className={`${pane === 'text' ? 'block' : 'hidden'} lg:block flex-1 lg:min-w-[340px] h-full overflow-hidden border-r border-white/10`}>
           <ManuscriptHighlighter
             text={manuscriptText}
             auditRefs={auditRefs}
@@ -115,7 +142,7 @@ export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
         </div>
 
         {/* Colonne 2 : Rapport d'audit détaillé et repères Réf. [1], [2] (Centre/Droite) */}
-        <div className="w-[380px] lg:w-[420px] shrink-0 h-full overflow-hidden border-r border-white/10">
+        <div className={`${pane === 'report' ? 'block' : 'hidden'} lg:block w-full lg:w-[420px] shrink-0 h-full overflow-hidden border-r border-white/10`}>
           <AuditReferencesPanel
             refs={auditRefs}
             report={report}
@@ -126,7 +153,7 @@ export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
 
         {/* Colonne 3 : Tiroir de Chat contextuel interactif (Droite escamotable) */}
         {isChatOpen && (
-          <div className="w-[340px] lg:w-[380px] shrink-0 h-full overflow-hidden animate-fadeIn shadow-2xl">
+          <div className={`${pane === 'chat' ? 'block' : 'hidden'} lg:block w-full lg:w-[380px] shrink-0 h-full overflow-hidden rcst-enter`}>
             <ChatPanel
               manuscriptText={manuscriptText}
               auditReport={report}
