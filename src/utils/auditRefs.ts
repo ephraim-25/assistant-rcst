@@ -29,7 +29,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (s.titleAndAuthors.hasSuperfluousQuotes) {
     refs.push({
       id: id++,
-      label: 'GUILLEMETS DANS LE TITRE',
+      label: 'Guillemets dans le titre',
       shortLabel: 'Guillemets',
       description: 'La Constitution RCST interdit formellement les guillemets (« », " ", " ") dans le titre.',
       auditSection: 'titleAndAuthors',
@@ -43,7 +43,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (!s.titleAndAuthors.isBilingualTitle) {
     refs.push({
       id: id++,
-      label: 'TITRE NON BILINGUE',
+      label: 'Titre non bilingue',
       shortLabel: 'Titre EN manquant',
       description: 'Le titre doit être fourni en français ET en anglais (Constitution RCST §1).',
       auditSection: 'titleAndAuthors',
@@ -57,7 +57,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (s.titleAndAuthors.hasBulletedAuthors) {
     refs.push({
       id: id++,
-      label: 'PUCES AUTEURS INTERDITES',
+      label: 'Puces auteurs interdites',
       shortLabel: 'Puces interdites',
       description: 'Les puces (-, •, *) pour lister les auteurs sont formellement proscrites (Constitution RCST §2).',
       auditSection: 'titleAndAuthors',
@@ -71,7 +71,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (!s.titleAndAuthors.hasOrcid16Digits) {
     refs.push({
       id: id++,
-      label: 'ORCID MANQUANT',
+      label: 'ORCID manquant',
       shortLabel: 'ORCID requis',
       description: 'Identifiant ORCID (format 0000-0000-0000-000X) obligatoire pour chaque auteur (Constitution RCST §2).',
       auditSection: 'titleAndAuthors',
@@ -84,7 +84,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (!s.titleAndAuthors.hasCorrespondingAsterisk) {
     refs.push({
       id: id++,
-      label: 'AUTEUR CORRESPONDANT NON IDENTIFIÉ',
+      label: 'Auteur correspondant non identifié',
       shortLabel: 'Astérisque (*) manquant',
       description: "L'auteur correspondant doit être désigné par un astérisque (*) en exposant, avec email et téléphone.",
       auditSection: 'titleAndAuthors',
@@ -98,7 +98,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (s.abstractAndKeywords.hasForbiddenSubtitles) {
     refs.push({
       id: id++,
-      label: 'SOUS-TITRES DANS LE RÉSUMÉ',
+      label: 'Sous-titres dans le résumé',
       shortLabel: 'Sous-titres prohibés',
       description: 'Le résumé doit être un paragraphe unique et fluide. Interdiction formelle des sous-titres (Constitution RCST §3).',
       auditSection: 'abstractAndKeywords',
@@ -112,7 +112,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (s.abstractAndKeywords.wordCountFr > 250) {
     refs.push({
       id: id++,
-      label: `RÉSUMÉ TROP LONG (${s.abstractAndKeywords.wordCountFr} mots)`,
+      label: `Résumé trop long (${s.abstractAndKeywords.wordCountFr} mots)`,
       shortLabel: 'Résumé > 250 mots',
       description: `Le résumé dépasse le plafond strict de 250 mots (actuel : ${s.abstractAndKeywords.wordCountFr} mots). Constitution RCST §3.`,
       auditSection: 'abstractAndKeywords',
@@ -125,7 +125,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (!s.abstractAndKeywords.isBilingual) {
     refs.push({
       id: id++,
-      label: 'BILINGUISME DU RÉSUMÉ',
+      label: 'Bilinguisme du résumé',
       shortLabel: 'Abstract EN absent',
       description: 'Un Abstract en anglais est obligatoire, suivi de 5 Keywords (Constitution RCST §3).',
       auditSection: 'abstractAndKeywords',
@@ -138,7 +138,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (s.abstractAndKeywords.hasReferences) {
     refs.push({
       id: id++,
-      label: 'RÉFÉRENCES DANS LE RÉSUMÉ',
+      label: 'Références dans le résumé',
       shortLabel: 'Références interdites',
       description: 'Aucune référence bibliographique ne doit figurer dans le résumé (Constitution RCST §3).',
       auditSection: 'abstractAndKeywords',
@@ -153,7 +153,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (!s.style.isImpersonal) {
     refs.push({
       id: id++,
-      label: 'STYLE SUBJECTIF PROHIBÉ',
+      label: 'Style subjectif prohibé',
       shortLabel: 'Pronoms personnels',
       description: `Style impersonnel obligatoire (Constitution RCST §5). ${s.style.personalPronounsDetected.length > 0 ? `Occurrences : "${s.style.personalPronounsDetected.slice(0, 4).join('", "')}"` : ''}`,
       auditSection: 'style',
@@ -168,7 +168,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (s.citationsAndReferences.hasNumericStyleBracket) {
     refs.push({
       id: id++,
-      label: 'CITATIONS [N] PROHIBÉES',
+      label: 'Citations [n] prohibées',
       shortLabel: 'Format [N] interdit',
       description: 'Les citations numériques [1], [2] sont proscrites. APA 7 requis : (Auteur, Année) (Constitution RCST §6).',
       auditSection: 'citationsAndReferences',
@@ -182,7 +182,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (!s.citationsAndReferences.apa7Compliant && !s.citationsAndReferences.hasNumericStyleBracket) {
     refs.push({
       id: id++,
-      label: 'FORMAT APA 7 NON CONFORME',
+      label: 'Format APA 7 non conforme',
       shortLabel: 'APA 7 requis',
       description: 'Les références bibliographiques ne respectent pas intégralement la norme APA 7e édition.',
       auditSection: 'citationsAndReferences',
@@ -196,7 +196,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (!s.imradAndStructure.hasArabicNumbering) {
     refs.push({
       id: id++,
-      label: 'NUMÉROTATION EN CHIFFRES ROMAINS',
+      label: 'Numérotation en chiffres romains',
       shortLabel: 'Chiffres romains proscrits',
       description: 'Les sections doivent être numérotées en chiffres arabes, pas romains (Constitution RCST §4).',
       auditSection: 'imradAndStructure',
@@ -210,7 +210,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (s.imradAndStructure.hasSuperfluousSubtitlesInIntro) {
     refs.push({
       id: id++,
-      label: 'SOUS-TITRES DANS L\'INTRODUCTION',
+      label: 'Sous-titres dans l\'introduction',
       shortLabel: 'Sous-titres interdits',
       description: 'L\'Introduction ne doit comporter aucun sous-titre. Elle doit être rédigée en texte continu (Constitution RCST §4).',
       auditSection: 'imradAndStructure',
@@ -223,7 +223,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (!s.imradAndStructure.tablesAndFiguresCompliant.tablesRomanBefore) {
     refs.push({
       id: id++,
-      label: 'TABLEAUX : FORMAT INCORRECT',
+      label: 'Tableaux : format incorrect',
       shortLabel: 'Tableau mal numéroté',
       description: 'Les tableaux doivent être numérotés en chiffres ROMAINS (Tableau I, II...) et leur intitulé placé AVANT.',
       auditSection: 'imradAndStructure',
@@ -247,7 +247,7 @@ export function buildAuditRefs(report: AuditReportData): AuditRef[] {
   if (missing.length > 0) {
     refs.push({
       id: id++,
-      label: 'SECTIONS FINALES MANQUANTES',
+      label: 'Sections finales manquantes',
       shortLabel: `${missing.length} sections absentes`,
       description: `Sections obligatoires manquantes : ${missing.join(', ')}. Ces 6 sections sont imposées par la Constitution RCST (§4).`,
       auditSection: 'imradAndStructure',

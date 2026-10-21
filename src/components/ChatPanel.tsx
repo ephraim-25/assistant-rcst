@@ -159,15 +159,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0e1015] border-l border-white/8">
+    <div className="flex flex-col h-full bg-slate-950 border-l border-white/8">
       {/* Header */}
-      <div className="shrink-0 flex items-center gap-2.5 px-4 py-3 bg-[#13151c] border-b border-white/8">
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center shrink-0">
+      <div className="shrink-0 flex items-center gap-2.5 px-4 py-3 bg-slate-900 border-b border-white/8">
+        <div className="w-7 h-7 rounded-full bg-slate-100 hover:bg-white flex items-center justify-center shrink-0">
           <Bot className="w-4 h-4 text-white" />
         </div>
         <div className="min-w-0">
           <h3 className="text-xs font-bold text-slate-100">Assistant Éditorial RCST</h3>
-          <p className="text-[10px] text-slate-500">Contexte : manuscrit + rapport d'audit chargés</p>
+          <p className="text-[11px] text-slate-500">Contexte : manuscrit + rapport d'audit chargés</p>
         </div>
         {history.length > 0 && (
           <button
@@ -185,7 +185,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         {/* Welcome state */}
         {history.length === 0 && (
           <div className="flex flex-col items-center justify-center text-center px-4 py-6 space-y-4">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-600 to-blue-700 flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 rounded-full bg-slate-100 hover:bg-white flex items-center justify-center">
               <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -204,7 +204,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                   key={q}
                   onClick={() => sendMessage(q)}
                   disabled={isLoading}
-                  className="w-full text-left text-[11px] text-slate-300 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/8 border border-white/6 hover:border-white/12 transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full text-left text-[11px] text-slate-300 px-3 py-2 rounded-md bg-white/5 hover:bg-white/8 border border-white/6 hover:border-white/12 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {q}
                 </button>
@@ -224,7 +224,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center mt-0.5 ${
                 msg.role === 'user'
                   ? 'bg-slate-700'
-                  : 'bg-gradient-to-br from-sky-500 to-blue-600'
+                  : 'bg-slate-100 hover:bg-white'
               }`}
             >
               {msg.role === 'user'
@@ -236,10 +236,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             {/* Bubble */}
             <div className={`group max-w-[85%] ${msg.role === 'user' ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
               <div
-                className={`px-3 py-2.5 rounded-2xl text-[12px] leading-relaxed ${
+                className={`px-3 py-2.5 rounded-lg text-[12px] leading-relaxed ${
                   msg.role === 'user'
                     ? 'bg-sky-600 text-white rounded-tr-sm'
-                    : 'bg-[#1e2130] text-slate-200 rounded-tl-sm border border-white/6'
+                    : 'bg-slate-800 text-slate-200 rounded-tl-sm border border-white/6'
                 }`}
               >
                 {msg.role === 'assistant' ? (
@@ -251,11 +251,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
               {/* Meta row */}
               <div className={`flex items-center gap-2 px-1 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                <span className="text-[9px] text-slate-600">
+                <span className="text-[11px] text-slate-600">
                   {msg.timestamp.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                 </span>
                 {msg.role === 'assistant' && msg.isAiGenerated && (
-                  <span className="flex items-center gap-0.5 text-[9px] text-sky-500">
+                  <span className="flex items-center gap-0.5 text-[11px] text-sky-500">
                     <Sparkles className="w-2.5 h-2.5" /> IA
                   </span>
                 )}
@@ -279,10 +279,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         {/* Typing indicator */}
         {isLoading && (
           <div className="flex gap-2">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded-full bg-slate-100 hover:bg-white flex items-center justify-center shrink-0">
               <Bot className="w-3.5 h-3.5 text-white" />
             </div>
-            <div className="bg-[#1e2130] border border-white/6 rounded-2xl rounded-tl-sm">
+            <div className="bg-slate-800 border border-white/6 rounded-lg rounded-tl-sm">
               <TypingIndicator />
             </div>
           </div>
@@ -292,8 +292,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       </div>
 
       {/* Input bar */}
-      <div className="shrink-0 px-3 pb-3 pt-2 border-t border-white/8 bg-[#0e1015]">
-        <div className="flex items-end gap-2 bg-[#1a1d26] border border-white/10 rounded-2xl px-3 py-2 focus-within:border-white/20 transition-colors">
+      <div className="shrink-0 px-3 pb-3 pt-2 border-t border-white/8 bg-slate-950">
+        <div className="flex items-end gap-2 bg-slate-800 border border-white/10 rounded-lg px-3 py-2 focus-within:border-white/20 transition-colors">
           <textarea
             ref={textareaRef}
             value={input}
@@ -320,7 +320,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             }
           </button>
         </div>
-        <p className="text-[9px] text-slate-600 text-center mt-1.5">
+        <p className="text-[11px] text-slate-600 text-center mt-1.5">
           Entrée pour envoyer • Maj+Entrée pour saut de ligne
         </p>
       </div>

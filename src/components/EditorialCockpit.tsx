@@ -47,9 +47,9 @@ export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-65px)] w-full overflow-hidden bg-[#0a0c10] text-slate-100">
+    <div className="flex flex-col h-[calc(100vh-65px)] w-full overflow-hidden bg-slate-950 text-slate-100">
       {/* Barre supérieure du Cockpit Éditorial */}
-      <header className="shrink-0 h-14 bg-[#12141c] border-b border-white/10 px-4 sm:px-6 flex items-center justify-between z-20 shadow-sm">
+      <header className="shrink-0 h-14 bg-slate-900 border-b border-white/10 px-4 sm:px-6 flex items-center justify-between z-20">
         <div className="flex items-center gap-3">
           <button
             onClick={onReset}
@@ -86,14 +86,14 @@ export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
             onClick={() => setIsChatOpen(!isChatOpen)}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
               isChatOpen
-                ? 'bg-sky-500/20 border-sky-500/40 text-sky-300 shadow-sm'
+                ? 'bg-sky-500/20 border-sky-500/40 text-sky-300'
                 : 'bg-white/5 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white'
             }`}
           >
             <MessageSquare className="w-3.5 h-3.5 text-sky-400" />
             <span className="hidden sm:inline">Assistant Éditorial</span>
             {chatHistory.length > 0 && (
-              <span className="w-4 h-4 rounded-full bg-sky-500 text-slate-950 font-bold text-[9px] flex items-center justify-center">
+              <span className="w-4 h-4 rounded-full bg-sky-500 text-slate-950 font-bold text-[11px] flex items-center justify-center">
                 {chatHistory.length}
               </span>
             )}
@@ -126,7 +126,7 @@ export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
 
         {/* Colonne 3 : Tiroir de Chat contextuel interactif (Droite escamotable) */}
         {isChatOpen && (
-          <div className="w-[340px] lg:w-[380px] shrink-0 h-full overflow-hidden animate-fadeIn shadow-2xl">
+          <div className="w-[340px] lg:w-[380px] shrink-0 h-full overflow-hidden animate-fadeIn">
             <ChatPanel
               manuscriptText={manuscriptText}
               auditReport={report}

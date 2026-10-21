@@ -59,12 +59,12 @@ export const StyleReformulator: React.FC = () => {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-800/40 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl">
-        <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-2">
+      <div className="bg-slate-900 border border-indigo-800/40 rounded-lg p-6 sm:p-8 mb-8">
+        <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold mb-2">
           <PenTool className="w-4 h-4" />
           Règle Fondamentale #5 RCST
         </div>
-        <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
           Atelier de Reformulation Impersonnelle
         </h2>
         <p className="text-sm text-slate-300 max-w-3xl mt-2 leading-relaxed">
@@ -74,7 +74,7 @@ export const StyleReformulator: React.FC = () => {
 
       {/* Preset quick test snippets */}
       <div className="mb-6">
-        <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2 block">
+        <label className="text-xs font-semibold text-slate-400 mb-2 block">
           Charger un exemple typique à réécrire :
         </label>
         <div className="flex flex-wrap gap-2">
@@ -96,10 +96,10 @@ export const StyleReformulator: React.FC = () => {
       {/* Editor & output */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Input box */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+        <div className="bg-slate-900/90 border border-slate-800 rounded-md p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-rose-400 flex items-center gap-1.5">
                 <ShieldAlert className="w-4 h-4" />
                 Texte Source avec marques de subjectivité
               </span>
@@ -120,7 +120,7 @@ export const StyleReformulator: React.FC = () => {
             <button
               onClick={handleReformulate}
               disabled={isLoading || !inputText.trim()}
-              className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all disabled:opacity-50 cursor-pointer"
+              className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
             >
               {isLoading ? (
                 <>
@@ -138,10 +138,10 @@ export const StyleReformulator: React.FC = () => {
         </div>
 
         {/* Output box */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+        <div className="bg-slate-900/90 border border-slate-800 rounded-md p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4" />
                 Prose Académique Impersonnelle (RCST)
               </span>
@@ -163,7 +163,7 @@ export const StyleReformulator: React.FC = () => {
                 </div>
                 {explanations.length > 0 && (
                   <div className="bg-slate-950/60 rounded-lg p-3 border border-slate-850">
-                    <h5 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                    <h5 className="text-[11px] font-semibold text-slate-400 mb-2">
                       Règles de dépersonnalisation appliquées :
                     </h5>
                     <ul className="space-y-1.5 text-xs text-slate-300">

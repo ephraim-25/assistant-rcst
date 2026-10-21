@@ -1,16 +1,124 @@
 @import "tailwindcss";
 
-@layer base {
-  body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  }
-  
-  h1, h2, h3, .font-serif {
-    font-family: 'Cinzel', Georgia, serif;
-  }
+/* ── Jetons de design ─────────────────────────────────────────────────────────
+   Surfaces neutres (graphite), une seule teinte d'accent (lapis) réservée au focus
+   et aux liens, et trois couleurs sémantiques pour le contrôle éditorial :
+   rouge = à corriger, or = à vérifier, vert = conforme.                         */
+@theme {
+  --font-sans: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  /* Pas de monospace décoratif : les chiffres tabulaires suffisent (voir .font-mono) */
+  --font-mono: var(--font-sans);
 
-  code, pre, .font-mono {
-    font-family: 'JetBrains Mono', monospace;
+  --color-slate-50: #f4f3f0;
+  --color-slate-100: #e9e7e2;
+  --color-slate-200: #d4d2cc;
+  --color-slate-300: #b8b7b2;
+  --color-slate-400: #9a9fa7;
+  --color-slate-500: #7a808a;
+  --color-slate-600: #5b616b;
+  --color-slate-700: #3b414b;
+  --color-slate-800: #2a2f38;
+  --color-slate-900: #1c2026;
+  --color-slate-950: #14171b;
+
+  /* Accent unique : lapis (focus, liens, sélection) — remplace sky/blue/cyan/indigo/violet/purple */
+  --color-sky-300: #a9c4ea;
+  --color-sky-400: #8db0e0;
+  --color-sky-500: #6f98d2;
+  --color-sky-600: #567fb9;
+  --color-blue-400: #8db0e0;
+  --color-blue-500: #6f98d2;
+  --color-blue-600: #567fb9;
+  --color-indigo-400: #8db0e0;
+  --color-indigo-500: #6f98d2;
+  --color-purple-400: #8db0e0;
+  --color-purple-500: #6f98d2;
+  --color-violet-400: #8db0e0;
+  --color-violet-500: #6f98d2;
+  --color-cyan-400: #8db0e0;
+
+  /* Or désaturé : « à vérifier » et marqueur de rôle (remplace l'ambre vif) */
+  --color-amber-200: #e6d6a8;
+  --color-amber-300: #dcc384;
+  --color-amber-400: #cfae5e;
+  --color-amber-500: #b9944a;
+  --color-amber-600: #9a7a3a;
+  --color-orange-400: #d98d5f;
+  --color-orange-500: #c4743f;
+  --color-orange-600: #a85f31;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  /* Le serif sert au contenu documentaire (manuscrit, rapport), jamais à l'interface */
+  .font-serif {
+    font-variant-numeric: lining-nums;
+  }
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--color-sky-500) 35%, transparent);
+    color: var(--color-slate-50);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-sky-400);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  button,
+  [role='button'],
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Retour tactile : tout élément pressable réagit au clic (Emil Kowalski) */
+  button:not(:disabled),
+  [role='button'] {
+    transition-property: transform, background-color, border-color, color, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: var(--ease-out);
+  }
+  button:not(:disabled):active,
+  [role='button']:active {
+    transform: scale(0.97);
+  }
+  textarea,
+  input,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* Entrée des panneaux : une seule courbe, courte, jamais depuis scale(0) */
+@keyframes rcst-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rcst-enter {
+  animation: rcst-enter 220ms var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

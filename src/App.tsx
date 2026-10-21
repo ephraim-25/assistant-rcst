@@ -127,7 +127,7 @@ function EditorialEnterpriseApp() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#07090e] text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
       {/* ─── VOLET LATÉRAL DÉROULANT & RÉTRACTABLE (STYLE GEMINI/CHATGPT) ─── */}
       <Sidebar
         activeView={activeView}
@@ -142,7 +142,7 @@ function EditorialEnterpriseApp() {
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Lueur d'ambiance cuivrée discrète sur le quadrant supérieur droit */}
         <div 
-          className="absolute top-0 right-0 w-[550px] h-[400px] pointer-events-none opacity-40 blur-3xl z-0"
+          className="absolute top-0 right-0 w-[550px] h-[400px] pointer-events-none opacity-40 z-0"
           style={{
             background: 'radial-gradient(circle at 75% 20%, rgba(180, 83, 9, 0.22) 0%, rgba(147, 51, 234, 0.08) 40%, transparent 70%)'
           }}
@@ -160,7 +160,7 @@ function EditorialEnterpriseApp() {
         <main className="flex-1 overflow-y-auto relative z-10 flex flex-col">
           {error && (
             <div className="max-w-4xl mx-auto w-full mt-4 px-4">
-              <div className="p-3.5 rounded-xl bg-red-950/70 border border-red-800/80 text-red-200 text-xs flex items-center justify-between shadow-lg">
+              <div className="p-3.5 rounded-md bg-red-950/70 border border-red-800/80 text-red-200 text-xs flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
                   <span>{error}</span>
@@ -200,7 +200,7 @@ function EditorialEnterpriseApp() {
           {/* Si cockpit sélectionné mais aucun rapport en cours */}
           {activeView === 'cockpit' && !report && (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-              <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400">
+              <div className="w-16 h-16 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400">
                 <AlertCircle className="w-8 h-8 text-amber-400" />
               </div>
               <h2 className="text-lg font-bold text-white">Aucun rapport actif dans le Cockpit</h2>
@@ -209,7 +209,7 @@ function EditorialEnterpriseApp() {
               </p>
               <button
                 onClick={() => setActiveView('hub')}
-                className="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs"
+                className="px-4 py-2 rounded-md bg-amber-500 text-slate-950 font-bold text-xs"
               >
                 Aller au Prompt Center
               </button>

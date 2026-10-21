@@ -82,26 +82,26 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 animate-fadeIn">
       <div 
-        className="w-full max-w-lg bg-[#0e1118] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-100"
+        className="w-full max-w-lg bg-slate-950 border border-white/10 rounded-lg overflow-hidden flex flex-col text-slate-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* En-tête */}
-        <div className="px-6 py-4 border-b border-white/10 bg-[#0a0d14] flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-white/10 bg-slate-900 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <div className="w-10 h-10 rounded-md bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
               <UserIcon className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <span>Mon Profil Éditorial</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono uppercase border ${
+                <span className={`text-[11px] px-2 py-0.5 rounded-full font-mono border ${
                   user.role === 'admin'
                     ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
                     : 'bg-sky-500/20 text-sky-300 border-sky-500/40'
                 }`}>
-                  {user.role === 'admin' ? '👑 Admin' : '🔬 Reviewer'}
+                  {user.role === 'admin' ? 'Admin' : 'Reviewer'}
                 </span>
               </h2>
               <p className="text-xs text-slate-400">
@@ -120,7 +120,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
         {/* Formulaire */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {feedback && (
-            <div className={`p-3 rounded-xl border text-xs flex items-center gap-2.5 animate-fadeIn ${
+            <div className={`p-3 rounded-md border text-xs flex items-center gap-2.5 animate-fadeIn ${
               feedback.type === 'success'
                 ? 'bg-emerald-950/70 border-emerald-800 text-emerald-200'
                 : 'bg-red-950/70 border-red-800 text-red-200'
@@ -147,7 +147,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex: Prof. Marcel Kalonji"
-                className="w-full bg-[#141824] border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                className="w-full bg-slate-900 border border-white/10 rounded-md pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
               />
             </div>
           </div>
@@ -165,7 +165,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nom.prenom@unikin.ac.cd"
-                className="w-full bg-[#141824] border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                className="w-full bg-slate-900 border border-white/10 rounded-md pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
               />
             </div>
           </div>
@@ -183,7 +183,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                   value={affiliation}
                   onChange={(e) => setAffiliation(e.target.value)}
                   placeholder="Ex: Université de Kinshasa"
-                  className="w-full bg-[#141824] border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                  className="w-full bg-slate-900 border border-white/10 rounded-md pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
                 />
               </div>
             </div>
@@ -199,7 +199,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                   value={specialty}
                   onChange={(e) => setSpecialty(e.target.value)}
                   placeholder="Ex: Énergies renouvelables"
-                  className="w-full bg-[#141824] border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                  className="w-full bg-slate-900 border border-white/10 rounded-md pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
                 />
               </div>
             </div>
@@ -219,7 +219,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Nouveau mot de passe"
-                  className="w-full bg-[#141824] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                  className="w-full bg-slate-900 border border-white/10 rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
                 />
               </div>
               <div>
@@ -228,7 +228,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirmer mot de passe"
-                  className="w-full bg-[#141824] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                  className="w-full bg-slate-900 border border-white/10 rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
                 />
               </div>
             </div>
@@ -239,14 +239,14 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-md bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-50"
+              className="px-5 py-2 rounded-md bg-slate-100 hover:bg-white text-slate-950 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
               <Save className="w-3.5 h-3.5" />
               <span>{isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}</span>
