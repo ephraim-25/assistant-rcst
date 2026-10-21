@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { LogOut, User as UserIcon, LayoutDashboard, Settings } from 'lucide-react';
+import { LogOut, Menu, User as UserIcon, LayoutDashboard, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 type View = 'hub' | 'cockpit' | 'reviewer-dashboard' | 'admin-dashboard' | 'constitution' | 'style' | 'apa';
@@ -9,6 +9,7 @@ interface TopBarProps {
   setActiveView: (view: View) => void;
   hasActiveReport: boolean;
   onOpenProfile: () => void;
+  onOpenMenu?: () => void;
 }
 
 const VIEW_TITLES: Record<View, string> = {
@@ -24,7 +25,7 @@ const VIEW_TITLES: Record<View, string> = {
 const menuItem =
   'flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-sm text-slate-200 hover:bg-slate-800';
 
-export const TopBar: React.FC<TopBarProps> = ({ activeView, setActiveView, onOpenProfile }) => {
+export const TopBar: React.FC<TopBarProps> = ({ activeView, setActiveView, onOpenProfile, onOpenMenu }) => {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -52,7 +53,18 @@ export const TopBar: React.FC<TopBarProps> = ({ activeView, setActiveView, onOpe
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-800 bg-slate-950 px-5 sm:px-8">
-      <h1 className="truncate text-[15px] font-semibold text-slate-100">{VIEW_TITLES[activeView]}</h1>
+      <div className="flex min-w-0 items-center gap-2">
+        {onOpenMenu && (
+          <button
+            onClick={onOpenMenu}
+            aria-label="Ouvrir le menu"
+            className="-ml-2 grid h-10 w-10 shrink-0 place-items-center rounded-md text-slate-300 hover:bg-slate-900 md:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
+        <h1 className="truncate text-[15px] font-semibold text-slate-100">{VIEW_TITLES[activeView]}</h1>
+      </div>
 
       <div ref={ref} className="relative">
         <button

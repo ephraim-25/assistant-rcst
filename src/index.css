@@ -23,13 +23,21 @@
   --color-slate-950: #14171b;
 
   /* Accent unique : lapis (focus, liens, sélection) — remplace sky/blue/cyan/indigo/violet/purple */
+  --color-sky-100: #e3ecf8;
+  --color-sky-200: #c8d9f0;
   --color-sky-300: #a9c4ea;
   --color-sky-400: #8db0e0;
   --color-sky-500: #6f98d2;
   --color-sky-600: #567fb9;
+  --color-sky-800: #2f4568;
+  --color-sky-900: #263650;
+  --color-sky-950: #1b2638;
   --color-blue-400: #8db0e0;
   --color-blue-500: #6f98d2;
   --color-blue-600: #567fb9;
+  --color-indigo-600: #567fb9;
+  --color-purple-200: #c8d9f0;
+  --color-blue-950: #1b2638;
   --color-indigo-400: #8db0e0;
   --color-indigo-500: #6f98d2;
   --color-purple-400: #8db0e0;
@@ -79,22 +87,23 @@
   a {
     -webkit-tap-highlight-color: transparent;
   }
-  /* Retour tactile : tout élément pressable réagit au clic (Emil Kowalski) */
-  button:not(:disabled),
-  [role='button'] {
-    transition-property: transform, background-color, border-color, color, opacity;
-    transition-duration: 150ms;
-    transition-timing-function: var(--ease-out);
-  }
-  button:not(:disabled):active,
-  [role='button']:active {
-    transform: scale(0.97);
-  }
   textarea,
   input,
   select {
     font-size: max(16px, 1em);
   }
+}
+
+/* Retour tactile : tout élément pressable réagit au clic (Emil Kowalski) */
+button:not(:disabled),
+[role='button'] {
+  transition-property: transform, background-color, border-color, color, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-out);
+}
+button:not(:disabled):active,
+[role='button']:active {
+  transform: scale(0.97);
 }
 
 /* Entrée des panneaux : une seule courbe, courte, jamais depuis scale(0) */
@@ -108,7 +117,8 @@
     transform: none;
   }
 }
-.rcst-enter {
+.rcst-enter,
+.animate-fadeIn {
   animation: rcst-enter 220ms var(--ease-out) both;
 }
 

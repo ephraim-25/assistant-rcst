@@ -106,7 +106,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
         <div className="flex items-center gap-3">
           <button
             onClick={onReset}
-            className="text-xs px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-all"
+            className="text-xs px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-colors"
           >
             ← Auditer un nouveau manuscrit
           </button>
@@ -115,7 +115,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
             Réf : <span className="text-amber-400 font-semibold">{report.referenceId || 'RCST-AUDIT-2026-0842'}</span>
           </div>
           {report.isAiGenerated && (
-            <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-sky-950 text-sky-400 border border-sky-800 font-mono">
+            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-sky-950 text-sky-400 border border-sky-800 font-mono">
               <Sparkles className="w-3 h-3" /> Audit Constitutionnel IA
             </span>
           )}
@@ -124,7 +124,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
         <div className="flex items-center gap-2">
           <button
             onClick={copyMarkdown}
-            className="text-xs px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 transition-all font-medium border border-slate-700/60"
+            className="text-xs px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 transition-colors font-medium border border-slate-700/60"
           >
             {copiedMd ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copiedMd ? 'Copié !' : 'Copier Rapport (MD)'}</span>
@@ -132,7 +132,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
 
           <button
             onClick={downloadReport}
-            className="text-xs px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 transition-all font-medium border border-slate-700/60"
+            className="text-xs px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 transition-colors font-medium border border-slate-700/60"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Télécharger .MD</span>
@@ -140,7 +140,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
 
           <button
             onClick={handlePrint}
-            className="text-xs px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center gap-1.5 transition-all font-bold"
+            className="text-xs px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center gap-1.5 transition-colors font-bold"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Imprimer / PDF Officiel</span>
@@ -156,10 +156,10 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
             <div className="flex items-start gap-4">
               <div className="w-16 h-16 rounded-md bg-slate-950 border border-amber-400/40 p-2 flex flex-col items-center justify-center text-center flex-shrink-0 print:border-black">
                 <span className="font-serif font-semibold text-amber-400 text-xl tracking-tighter print:text-black">RCST</span>
-                <span className="text-[11px] text-sky-300 font-bold print:text-black">RD CONGO</span>
+                <span className="text-xs text-sky-300 font-bold print:text-black">RD CONGO</span>
               </div>
               <div>
-                <div className="text-[11px] font-mono text-amber-400/90 font-bold print:text-black">
+                <div className="text-xs font-mono text-amber-400/90 font-bold print:text-black">
                   RÉPUBLIQUE DÉMOCRATIQUE DU CONGO
                 </div>
                 <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight print:text-black">
@@ -174,9 +174,9 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
             </div>
 
             <div className="flex-shrink-0 bg-slate-950/90 border border-slate-800 rounded-md p-3.5 text-right font-mono text-xs space-y-1 print:border-black print:bg-slate-100">
-              <div className="text-[11px] text-slate-400 font-bold print:text-black">CERTIFICAT OFFICIEL D'AUDIT</div>
+              <div className="text-xs text-slate-400 font-bold print:text-black">CERTIFICAT OFFICIEL D'AUDIT</div>
               <div className="text-amber-400 font-bold text-sm print:text-black">{report.referenceId || 'RCST-AUDIT-2026-0842'}</div>
-              <div className="text-slate-400 text-[11px] print:text-black">
+              <div className="text-slate-400 text-xs print:text-black">
                 Date : {report.timestamp || new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
               </div>
             </div>
@@ -189,7 +189,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
             1. STATUT OFFICIEL ASSERMENTÉ
           </div>
 
-          <div className={`p-6 rounded-lg border-2 ring-1 ${statusConfig.bg} transition-all`}>
+          <div className={`p-6 rounded-lg border-2 ring-1 ${statusConfig.bg} transition-colors`}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="flex items-start sm:items-center gap-4">
                 <div className={`p-3 rounded-md bg-slate-950/80 border border-current ${statusConfig.color}`}>
@@ -210,7 +210,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
 
               {/* Score Indicator */}
               <div className="bg-slate-950/90 border border-slate-800/80 rounded-md p-4 text-center min-w-[160px] print:bg-white print:border-black">
-                <div className="text-[11px] font-mono text-slate-400 font-semibold print:text-black">
+                <div className="text-xs font-mono text-slate-400 font-semibold print:text-black">
                   Score de Conformité
                 </div>
                 <div className="text-3xl sm:text-4xl font-bold text-white mt-0.5 print:text-black">
@@ -254,7 +254,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
           <div className="bg-slate-950/60 border border-slate-850 rounded-md overflow-hidden print:border-black">
             <button
               onClick={() => toggleSection('title')}
-              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/60 transition-all"
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/60 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-sky-950 border border-sky-800 text-sky-400 font-mono text-xs flex items-center justify-center font-bold">
@@ -262,7 +262,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
                 </span>
                 <div>
                   <h4 className="text-sm font-bold text-slate-100 print:text-black">Titre (Bilinguisme & Absence de guillemets)</h4>
-                  <div className="flex flex-wrap gap-2 text-[11px] text-slate-400 mt-0.5">
+                  <div className="flex flex-wrap gap-2 text-xs text-slate-400 mt-0.5">
                     <span>{titleAndAuthors.isBilingualTitle ? '✓ Titre bilingue (FR/EN)' : '✗ Titre non bilingue'}</span>
                     <span>•</span>
                     <span>{!titleAndAuthors.hasSuperfluousQuotes ? '✓ Zéro guillemets' : '✗ Guillemets superflus proscrits'}</span>
@@ -312,7 +312,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
           <div className="bg-slate-950/60 border border-slate-850 rounded-md overflow-hidden print:border-black">
             <button
               onClick={() => toggleSection('authors')}
-              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/60 transition-all"
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/60 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-sky-950 border border-sky-800 text-sky-400 font-mono text-xs flex items-center justify-center font-bold">
@@ -320,7 +320,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
                 </span>
                 <div>
                   <h4 className="text-sm font-bold text-slate-100 print:text-black">Auteurs, Affiliations et Détails</h4>
-                  <div className="flex flex-wrap gap-2 text-[11px] text-slate-400 mt-0.5">
+                  <div className="flex flex-wrap gap-2 text-xs text-slate-400 mt-0.5">
                     <span>{!titleAndAuthors.hasBulletedAuthors ? '✓ Pas de puces' : '✗ Puces interdites'}</span>
                     <span>•</span>
                     <span>{titleAndAuthors.hasSuperscriptAffiliations ? '✓ Affiliations en exposant' : '✗ Exposants manquants'}</span>
@@ -368,7 +368,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
                 {titleAndAuthors.correctedAuthorsBlock && (
                   <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg">
                     <div className="font-semibold text-emerald-400 mb-1">Modèle corrigé conforme RCST :</div>
-                    <pre className="font-mono text-[11px] text-slate-300 whitespace-pre-wrap leading-relaxed">
+                    <pre className="font-mono text-xs text-slate-300 whitespace-pre-wrap leading-relaxed">
                       {titleAndAuthors.correctedAuthorsBlock}
                     </pre>
                   </div>
@@ -381,7 +381,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
           <div className="bg-slate-950/60 border border-slate-850 rounded-md overflow-hidden print:border-black">
             <button
               onClick={() => toggleSection('abstractAndKeywords')}
-              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/60 transition-all"
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/60 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-sky-950 border border-sky-800 text-sky-400 font-mono text-xs flex items-center justify-center font-bold">
@@ -389,7 +389,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
                 </span>
                 <div>
                   <h4 className="text-sm font-bold text-slate-100 print:text-black">Résumé & Mots-clés</h4>
-                  <div className="flex flex-wrap gap-2 text-[11px] text-slate-400 mt-0.5">
+                  <div className="flex flex-wrap gap-2 text-xs text-slate-400 mt-0.5">
                     <span>{abstractAndKeywords.isBilingual ? '✓ Résumé bilingue' : '✗ Bilinguisme incomplet'}</span>
                     <span>•</span>
                     <span>{abstractAndKeywords.wordCountFr} mots {abstractAndKeywords.wordCountFr <= 250 ? '(✓ ≤ 250 mots)' : '(⚠️ Dépasse 250 mots)'}</span>
@@ -441,7 +441,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
           <div className="bg-slate-950/60 border border-slate-850 rounded-md overflow-hidden print:border-black">
             <button
               onClick={() => toggleSection('imradAndStructure')}
-              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/60 transition-all"
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/60 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-sky-950 border border-sky-800 text-sky-400 font-mono text-xs flex items-center justify-center font-bold">
@@ -449,7 +449,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
                 </span>
                 <div>
                   <h4 className="text-sm font-bold text-slate-100 print:text-black">Corps IMRAD (Structure, Tableaux, Figures & 6 Sections)</h4>
-                  <div className="flex flex-wrap gap-2 text-[11px] text-slate-400 mt-0.5">
+                  <div className="flex flex-wrap gap-2 text-xs text-slate-400 mt-0.5">
                     <span>{imradAndStructure.hasArabicNumbering ? '✓ Numérotation arabe (1., 2...)' : '✗ Chiffres romains proscrits'}</span>
                     <span>•</span>
                     <span>{!imradAndStructure.hasSuperfluousSubtitlesInIntro ? '✓ Intro sans sous-titre' : '✗ Sous-titres superflus dans l\'intro'}</span>
@@ -544,7 +544,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
           <div className="bg-slate-950/60 border border-slate-850 rounded-md overflow-hidden print:border-black">
             <button
               onClick={() => toggleSection('citationsAndReferences')}
-              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/60 transition-all"
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/60 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-sky-950 border border-sky-800 text-sky-400 font-mono text-xs flex items-center justify-center font-bold">
@@ -552,7 +552,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
                 </span>
                 <div>
                   <h4 className="text-sm font-bold text-slate-100 print:text-black">Références APA 7 (Citations & Bibliographie)</h4>
-                  <div className="flex flex-wrap gap-2 text-[11px] text-slate-400 mt-0.5">
+                  <div className="flex flex-wrap gap-2 text-xs text-slate-400 mt-0.5">
                     <span>{citationsAndReferences.apa7Compliant ? '✓ Format auteur-date APA 7' : '✗ Non conforme APA 7'}</span>
                     <span>•</span>
                     <span>{!citationsAndReferences.hasNumericStyleBracket ? '✓ Pas de [1], [2]' : '✗ Style numérique [1] proscrit'}</span>
@@ -593,9 +593,9 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
                     <div className="font-semibold text-amber-400">Citations pointées et conversion APA 7 requise :</div>
                     {citationsAndReferences.flaggedCitations.map((item, idx) => (
                       <div key={idx} className="p-3 bg-slate-900 border border-slate-800 rounded-lg space-y-1">
-                        <div className="text-rose-400 line-through font-mono text-[11px]">{item.raw}</div>
-                        <div className="text-[11px] text-amber-300">Anomalie : {item.error}</div>
-                        <div className="text-emerald-400 font-mono text-[11px] bg-slate-950 p-2 rounded border border-slate-850">
+                        <div className="text-rose-400 line-through font-mono text-xs">{item.raw}</div>
+                        <div className="text-xs text-amber-300">Anomalie : {item.error}</div>
+                        <div className="text-emerald-400 font-mono text-xs bg-slate-950 p-2 rounded border border-slate-850">
                           Format APA 7 conforme : {item.correctedApa7}
                         </div>
                       </div>
@@ -617,7 +617,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
           <div className="bg-slate-950/60 border border-slate-850 rounded-md overflow-hidden print:border-black">
             <button
               onClick={() => toggleSection('style')}
-              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/60 transition-all"
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/60 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-sky-950 border border-sky-800 text-sky-400 font-mono text-xs flex items-center justify-center font-bold">
@@ -625,7 +625,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
                 </span>
                 <div>
                   <h4 className="text-sm font-bold text-slate-100 print:text-black">Style Impersonnel (Proscription de « nous », « je », « nos travaux »)</h4>
-                  <div className="flex flex-wrap gap-2 text-[11px] text-slate-400 mt-0.5">
+                  <div className="flex flex-wrap gap-2 text-xs text-slate-400 mt-0.5">
                     <span>{style.isImpersonal ? '✓ Style impersonnel respecté' : '✗ Utilisation de « nous/je » prohibée'}</span>
                     <span>•</span>
                     <span>Tournures passives et nominales exigées dans tout l'article</span>
@@ -660,8 +660,8 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
                     <div className="font-semibold text-emerald-400">Exemples de dépersonnalisation :</div>
                     {style.sampleReformulations.map((item, idx) => (
                       <div key={idx} className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
-                        <div className="text-rose-400 text-[11px] italic">Auteur : « {item.original} »</div>
-                        <div className="text-emerald-300 text-[11px] font-medium">Style RCST : « {item.corrected} »</div>
+                        <div className="text-rose-400 text-xs italic">Auteur : « {item.original} »</div>
+                        <div className="text-emerald-300 text-xs font-medium">Style RCST : « {item.corrected} »</div>
                       </div>
                     ))}
                   </div>
@@ -696,7 +696,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
                 key={index}
                 className="flex items-start gap-3 p-3.5 rounded-md bg-slate-950/70 border border-slate-850 text-xs text-slate-200 print:bg-transparent print:border-black print:text-black"
               >
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-500/10 border border-amber-500/40 text-amber-400 font-mono text-[11px] font-bold flex items-center justify-center">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-500/10 border border-amber-500/40 text-amber-400 font-mono text-xs font-bold flex items-center justify-center">
                   {index + 1}
                 </span>
                 <span className="leading-relaxed mt-0.5">{rec}</span>
@@ -716,7 +716,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-4 rounded-md bg-slate-900 border border-slate-800 space-y-2 print:border-black">
-              <span className="text-[11px] font-mono font-bold text-sky-400">
+              <span className="text-xs font-mono font-bold text-sky-400">
                 Avis et Décision Recommandée
               </span>
               <p className="text-sm font-semibold text-white print:text-black">
@@ -728,7 +728,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
             </div>
 
             <div className="p-4 rounded-md bg-slate-900 border border-slate-800 space-y-3 print:border-black">
-              <span className="text-[11px] font-mono font-bold text-amber-400">
+              <span className="text-xs font-mono font-bold text-amber-400">
                 Points de Vigilance Éthique & Questions Spécifiques aux Auteurs
               </span>
               <ul className="space-y-1.5 text-xs text-slate-300 print:text-black">
@@ -751,20 +751,20 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
           {/* Sceau & signature pour impression */}
           <div className="mt-8 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 print:flex-row">
             <div>
-              <div className="text-[11px] font-mono text-slate-400 font-bold">Auditeur Assermenté</div>
+              <div className="text-xs font-mono text-slate-400 font-bold">Auditeur Assermenté</div>
               <div className="text-sm font-bold text-white print:text-black">
                 Expert Éditorial Principal & Contrôle Constitutionnel
               </div>
               <div className="text-xs text-slate-400 print:text-black">Revue Congolaise des Sciences & Technologies (RCST)</div>
             </div>
             <div className="border border-dashed border-amber-500/50 p-4 rounded-md text-center min-w-[220px] bg-amber-500/5 print:border-black">
-              <div className="text-[11px] font-mono text-amber-400 font-bold print:text-black">
+              <div className="text-xs font-mono text-amber-400 font-bold print:text-black">
                 SCEAU ÉDITORIAL RCST
               </div>
               <div className="text-xs italic text-slate-300 mt-1 print:text-black">
                 Rapport d'Audit Officiel Opposable
               </div>
-              <div className="text-[11px] font-mono text-slate-500 mt-1 print:text-black">
+              <div className="text-xs font-mono text-slate-500 mt-1 print:text-black">
                 RCST-CONST-2026-OK
               </div>
             </div>

@@ -127,7 +127,7 @@ export const ConstitutionGuide: React.FC = () => {
           </div>
           <div className="flex-shrink-0 bg-slate-950/80 border border-slate-800 rounded-md p-4 text-center">
             <div className="text-2xl font-bold text-amber-400">6 Directives</div>
-            <div className="text-[11px] text-slate-400 font-medium">Contrôle de Conformité</div>
+            <div className="text-xs text-slate-400 font-medium">Contrôle de Conformité</div>
           </div>
         </div>
       </div>
@@ -141,7 +141,7 @@ export const ConstitutionGuide: React.FC = () => {
             <button
               key={rule.id}
               onClick={() => setActiveRule(rule.id)}
-              className={`p-3.5 rounded-md border text-left transition-all flex flex-col justify-between gap-2.5 ${
+              className={`p-3.5 rounded-md border text-left transition-colors flex flex-col justify-between gap-2.5 ${
                 isSelected
                   ? 'bg-amber-500/10 border-amber-500/60 text-white ring-1 ring-amber-500/40'
                   : 'bg-slate-900/60 border-slate-800/80 text-slate-300 hover:bg-slate-850 hover:border-slate-700'
@@ -151,11 +151,11 @@ export const ConstitutionGuide: React.FC = () => {
                 <span className={`p-1.5 rounded-lg ${isSelected ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>
                   <Icon className="w-3.5 h-3.5" />
                 </span>
-                <span className="text-[11px] font-mono font-bold text-amber-400/90">0{rule.id}</span>
+                <span className="text-xs font-mono font-bold text-amber-400/90">0{rule.id}</span>
               </div>
               <div>
                 <h4 className="text-xs font-bold leading-tight line-clamp-2">{rule.title}</h4>
-                <p className="text-[11px] text-slate-400 mt-1 line-clamp-1">{rule.subtitle}</p>
+                <p className="text-xs text-slate-400 mt-1 line-clamp-1">{rule.subtitle}</p>
               </div>
             </button>
           );

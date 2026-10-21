@@ -167,7 +167,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         </div>
         <div className="min-w-0">
           <h3 className="text-xs font-bold text-slate-100">Assistant Éditorial RCST</h3>
-          <p className="text-[11px] text-slate-500">Contexte : manuscrit + rapport d'audit chargés</p>
+          <p className="text-xs text-slate-500">Contexte : manuscrit + rapport d'audit chargés</p>
         </div>
         {history.length > 0 && (
           <button
@@ -204,7 +204,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                   key={q}
                   onClick={() => sendMessage(q)}
                   disabled={isLoading}
-                  className="w-full text-left text-[11px] text-slate-300 px-3 py-2 rounded-md bg-white/5 hover:bg-white/8 border border-white/6 hover:border-white/12 transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full text-left text-xs text-slate-300 px-3 py-2 rounded-md bg-white/5 hover:bg-white/8 border border-white/6 hover:border-white/12 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {q}
                 </button>
@@ -251,11 +251,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
               {/* Meta row */}
               <div className={`flex items-center gap-2 px-1 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                <span className="text-[11px] text-slate-600">
+                <span className="text-xs text-slate-600">
                   {msg.timestamp.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                 </span>
                 {msg.role === 'assistant' && msg.isAiGenerated && (
-                  <span className="flex items-center gap-0.5 text-[11px] text-sky-500">
+                  <span className="flex items-center gap-0.5 text-xs text-sky-500">
                     <Sparkles className="w-2.5 h-2.5" /> IA
                   </span>
                 )}
@@ -308,7 +308,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           <button
             onClick={() => sendMessage()}
             disabled={!input.trim() || isLoading}
-            className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+            className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
               input.trim() && !isLoading
                 ? 'bg-sky-500 hover:bg-sky-400 text-white cursor-pointer'
                 : 'bg-white/8 text-slate-600 cursor-not-allowed'
@@ -320,7 +320,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             }
           </button>
         </div>
-        <p className="text-[11px] text-slate-600 text-center mt-1.5">
+        <p className="text-xs text-slate-600 text-center mt-1.5">
           Entrée pour envoyer • Maj+Entrée pour saut de ligne
         </p>
       </div>

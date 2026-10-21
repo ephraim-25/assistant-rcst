@@ -48,7 +48,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <span>Panneau d'Administration RCST</span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono">
                   Éditeur Principal
                 </span>
               </h2>
@@ -74,7 +74,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
                 <Users className="w-4 h-4" />
                 <span>Auditeurs & Membres Enregistrés ({registeredUsers.length})</span>
               </div>
-              <span className="text-[11px] text-slate-400">Stockage persistant local</span>
+              <span className="text-xs text-slate-400">Stockage persistant local</span>
             </div>
 
             <div className="bg-slate-900/60 border border-slate-800 rounded-md divide-y divide-slate-800 text-xs">
@@ -99,12 +99,12 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
                           <div className="font-semibold text-slate-200 flex items-center gap-2">
                             <span>{account.name}</span>
                             {isCurrent && (
-                              <span className="text-[11px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded font-mono">
+                              <span className="text-xs bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded font-mono">
                                 Vous
                               </span>
                             )}
                           </div>
-                          <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                          <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
                             <span>{account.email}</span>
                             <span>•</span>
                             <span className="text-slate-500">Inscrit le {account.createdAt}</span>
@@ -113,7 +113,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded text-[11px] font-bold border ${
+                        <span className={`px-2 py-0.5 rounded text-xs font-bold border ${
                           account.role === 'admin'
                             ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
                             : 'bg-sky-500/15 text-sky-300 border-sky-500/30'
@@ -153,14 +153,14 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
                 <button
                   key={m.id}
                   onClick={() => setSelectedModel(m.id)}
-                  className={`p-3 rounded-md border text-left transition-all cursor-pointer ${
+                  className={`p-3 rounded-md border text-left transition-colors cursor-pointer ${
                     selectedModel === m.id
                       ? 'bg-amber-500/15 border-amber-500 text-amber-200'
                       : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
                   }`}
                 >
                   <div className="font-bold text-xs">{m.label}</div>
-                  <div className="text-[11px] text-slate-500 mt-1">{m.tag}</div>
+                  <div className="text-xs text-slate-500 mt-1">{m.tag}</div>
                 </button>
               ))}
             </div>
@@ -186,7 +186,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
                   onChange={(e) => setMinPassScore(Number(e.target.value))}
                   className="w-full accent-amber-500 cursor-pointer"
                 />
-                <span className="text-[11px] text-slate-500">
+                <span className="text-xs text-slate-500">
                   Les manuscrits sous ce seuil reçoivent la mention « Modifications majeures requises » ou « Refusé ».
                 </span>
               </div>
@@ -194,7 +194,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
               <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
                 <div>
                   <div className="font-medium text-slate-300">Style impersonnel strict (Constitution §5)</div>
-                  <div className="text-[11px] text-slate-500">Pénalisation automatique des pronoms « nous » et « je »</div>
+                  <div className="text-xs text-slate-500">Pénalisation automatique des pronoms « nous » et « je »</div>
                 </div>
                 <input 
                   type="checkbox" 
@@ -207,7 +207,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
               <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
                 <div>
                   <div className="font-medium text-slate-300">Validation systématique de l'ORCID 16 chiffres (§2)</div>
-                  <div className="text-[11px] text-slate-500">Requis pour l'ensemble des co-auteurs du manuscrit</div>
+                  <div className="text-xs text-slate-500">Requis pour l'ensemble des co-auteurs du manuscrit</div>
                 </div>
                 <input 
                   type="checkbox" 
@@ -229,13 +229,13 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-md text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
+              className="px-4 py-2 rounded-md text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
             >
               Fermer
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-2 rounded-md bg-slate-100 hover:bg-white text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-4 py-2 rounded-md bg-slate-100 hover:bg-white text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               {saved ? (
                 <>

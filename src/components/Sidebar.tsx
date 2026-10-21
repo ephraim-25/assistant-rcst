@@ -29,6 +29,8 @@ interface SidebarProps {
   onNewAudit: () => void;
   onLoadAuditFromHistory: (item: AuditHistoryItem) => void;
   onOpenProfile: () => void;
+  /** Mobile : le menu est un tiroir ouvert depuis la barre du haut. */
+  mobileOpen?: boolean;
 }
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -43,10 +45,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   hasActiveReport,
   onNewAudit,
   onLoadAuditFromHistory,
+  mobileOpen = false,
 }) => {
   const { user } = useAuth();
   const { historyItems, renameAudit, toggleArchiveAudit, deleteAudit } = useGovernance();
-  const [expanded, setExpanded] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
+  // Le tiroir mobile affiche toujours les libellés ; la version réduite n'existe que sur ordinateur.
+  const expanded = mobileOpen || !collapsed;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftTitle, setDraftTitle] = useState('');
 
@@ -77,15 +82,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`relative z-40 flex h-screen shrink-0 flex-col border-r border-slate-800 bg-slate-950 transition-[width] duration-200 ease-[var(--ease-out)] ${
-        expanded ? 'w-64' : 'w-14'
-      }`}
+      className={`fixed inset-y-0 left-0 z-50 flex h-dvh w-64 flex-col border-r border-slate-800 bg-slate-950 transition-transform duration-200 ease-[var(--ease-out)] md:static md:z-40 md:shrink-0 md:translate-x-0 md:transition-[width] ${
+        mobileOpen ? 'translate-x-0' : '-translate-x-full'
+      } ${collapsed ? 'md:w-14' : 'md:w-64'}`}
     >
       {/* En-tête */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-slate-800 px-3">
         {expanded && <span className="pl-1 text-[15px] font-semibold tracking-tight text-slate-100">RCST</span>}
         <button
-          onClick={() => setExpanded((v) => !v)}
+          onClick={() => setCollapsed((v) => !v)}
           className={`${iconButton} ${expanded ? '' : 'mx-auto'}`}
           aria-label={expanded ? 'Réduire le menu' : 'Déplier le menu'}
         >

@@ -135,7 +135,7 @@ export const ManuscriptHighlighter: React.FC<ManuscriptHighlighterProps> = ({
           onClick={() => onRefClick(span.ref)}
           className={`
             relative inline cursor-pointer rounded-[3px] px-0.5 py-px
-            transition-all duration-150
+            transition-[background-color,box-shadow,filter] duration-150
             ${colors.bg} ${colors.text}
             ${isActive
               ? `ring-2 ${colors.ring} ring-offset-1 brightness-90`
@@ -182,12 +182,12 @@ export const ManuscriptHighlighter: React.FC<ManuscriptHighlighterProps> = ({
           </span>
         </div>
         {totalHighlights > 0 && (
-          <span className="text-[11px] font-mono bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
+          <span className="text-xs font-mono bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
             {totalHighlights} zone{totalHighlights > 1 ? 's' : ''} surlignée{totalHighlights > 1 ? 's' : ''}
           </span>
         )}
         {totalHighlights === 0 && (
-          <span className="text-[11px] text-emerald-600 font-medium">Aucune anomalie détectée</span>
+          <span className="text-xs text-emerald-600 font-medium">Aucune anomalie détectée</span>
         )}
       </div>
 
@@ -201,13 +201,13 @@ export const ManuscriptHighlighter: React.FC<ManuscriptHighlighterProps> = ({
               yellow: 'Style', orange: 'Citations', red: 'Structure', blue: 'Bilinguisme',
             };
             return (
-              <span key={c} className={`flex items-center gap-1 text-[11px] font-medium ${COLOR_MAP[c].text}`}>
+              <span key={c} className={`flex items-center gap-1 text-xs font-medium ${COLOR_MAP[c].text}`}>
                 <span className={`w-2.5 h-2.5 rounded-sm ${COLOR_MAP[c].bg} border ${COLOR_MAP[c].ring} border-opacity-50`} />
                 {label[c]}
               </span>
             );
           })}
-          <span className="text-[11px] text-slate-400 ml-auto">Cliquez sur un surlignage pour détails</span>
+          <span className="text-xs text-slate-400 ml-auto">Cliquez sur un surlignage pour détails</span>
         </div>
       )}
 

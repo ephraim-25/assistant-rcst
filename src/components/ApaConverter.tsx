@@ -84,7 +84,7 @@ export const ApaConverter: React.FC = () => {
                 setRefInput(item.ref);
                 setResult(null);
               }}
-              className="text-xs px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-amber-500/50 text-slate-300 hover:text-white transition-all text-left"
+              className="text-xs px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-amber-500/50 text-slate-300 hover:text-white transition-colors text-left"
             >
               {item.label}
             </button>
@@ -108,7 +108,7 @@ export const ApaConverter: React.FC = () => {
           <button
             onClick={handleConvert}
             disabled={isLoading || !refInput.trim()}
-            className="px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+            className="px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isLoading ? (
               <>
@@ -136,7 +136,7 @@ export const ApaConverter: React.FC = () => {
               </span>
               <button
                 onClick={() => copyToClipboard(result.apaFormatted)}
-                className="text-xs px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 transition-all"
+                className="text-xs px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 transition-colors"
               >
                 {copiedApa ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedApa ? 'Copié !' : 'Copier APA 7'}</span>
@@ -164,7 +164,7 @@ export const ApaConverter: React.FC = () => {
               <div className="bg-slate-950 p-3 rounded-lg border border-slate-850 font-mono text-xs text-sky-200">
                 {result.inTextCitationParenthetical}
               </div>
-              <p className="text-[11px] text-slate-400 mt-2">
+              <p className="text-xs text-slate-400 mt-2">
                 À placer en fin de phrase ou d'assertion entre parenthèses.
               </p>
             </div>
@@ -176,7 +176,7 @@ export const ApaConverter: React.FC = () => {
               <div className="bg-slate-950 p-3 rounded-lg border border-slate-850 font-mono text-xs text-purple-200">
                 {result.inTextCitationNarrative}
               </div>
-              <p className="text-[11px] text-slate-400 mt-2">
+              <p className="text-xs text-slate-400 mt-2">
                 À intégrer directement dans la syntaxe de la phrase.
               </p>
             </div>

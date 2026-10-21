@@ -96,7 +96,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <span>Mon Profil Éditorial</span>
-                <span className={`text-[11px] px-2 py-0.5 rounded-full font-mono border ${
+                <span className={`text-xs px-2 py-0.5 rounded-full font-mono border ${
                   user.role === 'admin'
                     ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
                     : 'bg-sky-500/20 text-sky-300 border-sky-500/40'
@@ -246,7 +246,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
             <button
               type="submit"
               disabled={isSaving}
-              className="px-5 py-2 rounded-md bg-slate-100 hover:bg-white text-slate-950 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+              className="px-5 py-2 rounded-md bg-slate-100 hover:bg-white text-slate-950 font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
             >
               <Save className="w-3.5 h-3.5" />
               <span>{isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}</span>

@@ -37,6 +37,7 @@ function EditorialEnterpriseApp() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
+  const [navOpen, setNavOpen] = useState<boolean>(false);
 
   // Blocage de sécurité : si non authentifié, afficher l'écran de connexion institutionnel
   if (!authReady) {
@@ -127,33 +128,44 @@ function EditorialEnterpriseApp() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
+    <div className="flex h-dvh w-screen overflow-hidden bg-slate-950 text-slate-100 font-sans selection:bg-amber-500/30 selection:text-amber-200">
       {/* ─── VOLET LATÉRAL DÉROULANT & RÉTRACTABLE (STYLE GEMINI/CHATGPT) ─── */}
       <Sidebar
         activeView={activeView}
-        setActiveView={setActiveView}
+        setActiveView={(v) => {
+          setNavOpen(false);
+          setActiveView(v);
+        }}
         hasActiveReport={!!report}
-        onNewAudit={handleNewAudit}
-        onLoadAuditFromHistory={handleLoadAuditFromHistory}
+        onNewAudit={() => {
+          setNavOpen(false);
+          handleNewAudit();
+        }}
+        onLoadAuditFromHistory={(item) => {
+          setNavOpen(false);
+          handleLoadAuditFromHistory(item);
+        }}
         onOpenProfile={() => setIsProfileModalOpen(true)}
+        mobileOpen={navOpen}
+      />
+      {/* Fond du tiroir (mobile uniquement) */}
+      <div
+        onClick={() => setNavOpen(false)}
+        aria-hidden
+        className={`fixed inset-0 z-40 bg-black/60 transition-opacity duration-200 ease-[var(--ease-out)] md:hidden ${
+          navOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
       />
 
       {/* ─── CONTENU PRINCIPAL : TOPBAR + VUES DYNAMIQUES ─── */}
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-        {/* Lueur d'ambiance cuivrée discrète sur le quadrant supérieur droit */}
-        <div 
-          className="absolute top-0 right-0 w-[550px] h-[400px] pointer-events-none opacity-40 z-0"
-          style={{
-            background: 'radial-gradient(circle at 75% 20%, rgba(180, 83, 9, 0.22) 0%, rgba(147, 51, 234, 0.08) 40%, transparent 70%)'
-          }}
-        />
-
         {/* Barre supérieure unifiée */}
         <TopBar
           activeView={activeView}
           setActiveView={setActiveView}
           hasActiveReport={!!report}
           onOpenProfile={() => setIsProfileModalOpen(true)}
+          onOpenMenu={() => setNavOpen(true)}
         />
 
         {/* Zone centrale d'affichage */}

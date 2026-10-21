@@ -63,7 +63,7 @@ export const AuditReferencesPanel: React.FC<AuditReferencesPanelProps> = ({
                   }`}
                 >
                   <span
-                    className={`mt-0.5 grid h-5 min-w-5 place-items-center rounded px-1 text-[11px] font-semibold tabular-nums ${MARK[ref.color]}`}
+                    className={`mt-0.5 grid h-5 min-w-5 place-items-center rounded px-1 text-xs font-semibold tabular-nums ${MARK[ref.color]}`}
                   >
                     {ref.id}
                   </span>
