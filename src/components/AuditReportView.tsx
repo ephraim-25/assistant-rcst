@@ -18,16 +18,23 @@ import {
   Quote,
   PenSquare,
   MessageSquare,
-  AlertCircle
+  AlertCircle,
+  File,
+  Send
 } from 'lucide-react';
 import { AuditReportData } from '../types/audit';
+import { apiFetch } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
+import { toast } from 'sonner';
 
 interface AuditReportViewProps {
   report: AuditReportData;
   onReset: () => void;
+  sourceFile?: File | null;
 }
 
-export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onReset }) => {
+export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onReset, sourceFile }) => {
+  const { user } = useAuth();
   const [copiedMd, setCopiedMd] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     titleAndAuthors: true,
@@ -38,6 +45,12 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
     priority: true,
     board: true,
   });
+
+  const [isDownloadingAnnotated, setIsDownloadingAnnotated] = useState(false);
+  const [isDownloadingAuthorPdf, setIsDownloadingAuthorPdf] = useState(false);
+  const [isDownloadingEditorPdf, setIsDownloadingEditorPdf] = useState(false);
+  const [isTransmitting, setIsTransmitting] = useState(false);
+  const [isTransmitModalOpen, setIsTransmitModalOpen] = useState(false);
 
   const toggleSection = (id: string) => {
     setExpandedSections((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -97,6 +110,119 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
     document.body.removeChild(element);
   };
 
+  const downloadAnnotatedDocx = async () => {
+    if (!sourceFile) {
+      toast.error('Fichier original non disponible');
+      return;
+    }
+    setIsDownloadingAnnotated(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', sourceFile);
+      formData.append('report', JSON.stringify(report));
+      
+      const response = await apiFetch('/api/annotate-docx', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) throw new Error('Erreur lors de la génération du fichier annoté');
+      
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Manuscrit_Annote_${report.referenceId || '2026'}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Manuscrit annoté téléchargé');
+    } catch (error) {
+      toast.error('Erreur lors du téléchargement du manuscrit annoté');
+    } finally {
+      setIsDownloadingAnnotated(false);
+    }
+  };
+
+  const downloadAuthorPdf = async () => {
+    setIsDownloadingAuthorPdf(true);
+    try {
+      const response = await apiFetch('/api/reports/author-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(report),
+      });
+      
+      if (!response.ok) throw new Error('Erreur lors de la génération du PDF auteur');
+      
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Rapport_Auteur_${report.referenceId || '2026'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Rapport auteur (PDF) téléchargé');
+    } catch (error) {
+      toast.error('Erreur lors du téléchargement du rapport auteur');
+    } finally {
+      setIsDownloadingAuthorPdf(false);
+    }
+  };
+
+  const downloadEditorPdf = async () => {
+    setIsDownloadingEditorPdf(true);
+    try {
+      const response = await apiFetch('/api/reports/editor-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(report),
+      });
+      
+      if (!response.ok) throw new Error('Erreur lors de la génération du PDF éditeur');
+      
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Rapport_Editeur_${report.referenceId || '2026'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Rapport éditeur (PDF) téléchargé');
+    } catch (error) {
+      toast.error('Erreur lors du téléchargement du rapport éditeur');
+    } finally {
+      setIsDownloadingEditorPdf(false);
+    }
+  };
+
+  const handleTransmitReport = async () => {
+    setIsTransmitting(true);
+    try {
+      const submissionId = report.referenceId || 'temp-id';
+      const response = await apiFetch(`/api/submissions/${submissionId}/approve-dispatch`, {
+        method: 'POST',
+      });
+      
+      if (!response.ok) throw new Error('Erreur lors de la transmission du rapport');
+      
+      toast.success('Rapport transmis avec succès');
+      setIsTransmitModalOpen(false);
+    } catch (error) {
+      toast.error('Erreur lors de la transmission du rapport');
+    } finally {
+      setIsTransmitting(false);
+    }
+  };
+
   const { titleAndAuthors, abstractAndKeywords, imradAndStructure, citationsAndReferences, style } = report.sections;
 
   return (
@@ -121,29 +247,78 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={copyMarkdown}
-            className="text-xs px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 transition-colors font-medium border border-slate-700/60"
+            className="h-10 min-w-[40px] px-3.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 text-xs font-medium border border-slate-700/60"
           >
             {copiedMd ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copiedMd ? 'Copié !' : 'Copier Rapport (MD)'}</span>
+            <span className="hidden sm:inline">{copiedMd ? 'Copié !' : 'Copier Rapport (MD)'}</span>
           </button>
 
           <button
             onClick={downloadReport}
-            className="text-xs px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 transition-colors font-medium border border-slate-700/60"
+            className="h-10 min-w-[40px] px-3.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 text-xs font-medium border border-slate-700/60"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Télécharger .MD</span>
+            <span className="hidden sm:inline">Télécharger .MD</span>
+          </button>
+
+          <button
+            onClick={downloadAnnotatedDocx}
+            disabled={isDownloadingAnnotated || !sourceFile}
+            className="h-10 min-w-[40px] px-3.5 rounded-lg bg-sky-900/50 hover:bg-sky-900/70 text-sky-200 flex items-center gap-1.5 text-xs font-medium border border-sky-800/60 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isDownloadingAnnotated ? (
+              <span className="w-3.5 h-3.5 animate-spin border-2 border-sky-400 border-t-transparent rounded-full" />
+            ) : (
+              <File className="w-3.5 h-3.5" />
+            )}
+            <span className="hidden sm:inline">{isDownloadingAnnotated ? 'Génération...' : 'Manuscrit annoté (.docx)'}</span>
+          </button>
+
+          <button
+            onClick={downloadAuthorPdf}
+            disabled={isDownloadingAuthorPdf}
+            className="h-10 min-w-[40px] px-3.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 text-xs font-medium border border-slate-700/60 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isDownloadingAuthorPdf ? (
+              <span className="w-3.5 h-3.5 animate-spin border-2 border-slate-400 border-t-transparent rounded-full" />
+            ) : (
+              <Download className="w-3.5 h-3.5" />
+            )}
+            <span className="hidden sm:inline">{isDownloadingAuthorPdf ? 'Génération...' : 'Rapport auteur (PDF)'}</span>
+          </button>
+
+          {(user?.role === 'ADMIN' || user?.role === 'REVIEWER') && (
+            <button
+              onClick={downloadEditorPdf}
+              disabled={isDownloadingEditorPdf}
+              className="h-10 min-w-[40px] px-3.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5 text-xs font-medium border border-slate-700/60 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDownloadingEditorPdf ? (
+                <span className="w-3.5 h-3.5 animate-spin border-2 border-slate-400 border-t-transparent rounded-full" />
+              ) : (
+                <Download className="w-3.5 h-3.5" />
+              )}
+              <span className="hidden sm:inline">{isDownloadingEditorPdf ? 'Génération...' : 'Rapport éditeur (PDF)'}</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setIsTransmitModalOpen(true)}
+            className="h-10 min-w-[40px] px-3.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Transmettre le rapport</span>
           </button>
 
           <button
             onClick={handlePrint}
-            className="text-xs px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center gap-1.5 transition-colors font-bold"
+            className="h-10 min-w-[40px] px-4 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center gap-1.5 text-xs font-bold"
           >
             <Printer className="w-3.5 h-3.5" />
-            <span>Imprimer / PDF Officiel</span>
+            <span className="hidden sm:inline">Imprimer / PDF Officiel</span>
           </button>
         </div>
       </div>
@@ -771,6 +946,46 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
           </div>
         </div>
       </div>
+
+      {/* Modale de confirmation pour transmettre le rapport */}
+      {isTransmitModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden">
+            <div className="p-6">
+              <h3 className="text-lg font-bold text-white mb-2">Transmettre le rapport</h3>
+              <p className="text-sm text-slate-300 mb-6">
+                Vous êtes sur le point de transmettre ce rapport d'audit à l'auteur. Cette action est irréversible. Confirmez-vous la transmission ?
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setIsTransmitModalOpen(false)}
+                  disabled={isTransmitting}
+                  className="h-10 min-w-[40px] px-4 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleTransmitReport}
+                  disabled={isTransmitting}
+                  className="h-10 min-w-[40px] px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isTransmitting ? (
+                    <>
+                      <span className="w-3.5 h-3.5 animate-spin border-2 border-white border-t-transparent rounded-full" />
+                      Transmission...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      Confirmer la transmission
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

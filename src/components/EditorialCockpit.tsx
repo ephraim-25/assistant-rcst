@@ -15,10 +15,12 @@ import { buildAuditRefs, AuditRef } from '../utils/auditRefs';
 import { ManuscriptHighlighter } from './ManuscriptHighlighter';
 import { AuditReferencesPanel } from './AuditReferencesPanel';
 import { ChatPanel, ChatMessage } from './ChatPanel';
+import { AuditReportView } from './AuditReportView';
 
 interface EditorialCockpitProps {
   manuscriptText: string;
   sourceFilename: string;
+  sourceFile?: File | null;
   report: AuditReportData;
   onReset: () => void;
   onReaudit?: () => void;
@@ -27,11 +29,13 @@ interface EditorialCockpitProps {
 export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
   manuscriptText,
   sourceFilename,
+  sourceFile,
   report,
   onReset,
 }) => {
   const [activeRefId, setActiveRefId] = useState<number | null>(null);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(true);
+  const [showFullReport, setShowFullReport] = useState<boolean>(false);
   // Sous 1024 px, un seul volet à la fois (manuscrit, constats ou assistant)
   const [pane, setPane] = useState<'text' | 'report' | 'chat'>('report');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -83,6 +87,19 @@ export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
 
           <div className="h-4 w-px bg-white/10 hidden md:block" />
 
+          {/* Bouton de bascule Vue Rapport / Constats */}
+          <button
+            onClick={() => setShowFullReport(!showFullReport)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium cursor-pointer ${
+              showFullReport
+                ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                : 'bg-white/5 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white'
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{showFullReport ? 'Constats' : 'Rapport complet'}</span>
+          </button>
+
           {/* Bouton de bascule du tiroir de Chat */}
           <button
             onClick={() => {
@@ -94,7 +111,7 @@ export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
                 setIsChatOpen(!isChatOpen);
               }
             }}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium cursor-pointer ${
               isChatOpen
                 ? 'bg-sky-500/20 border-sky-500/40 text-sky-300'
                 : 'bg-white/5 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white'
@@ -143,12 +160,23 @@ export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
 
         {/* Colonne 2 : Rapport d'audit détaillé et repères Réf. [1], [2] (Centre/Droite) */}
         <div className={`${pane === 'report' ? 'block' : 'hidden'} lg:block w-full lg:w-[420px] shrink-0 h-full overflow-hidden border-r border-white/10`}>
-          <AuditReferencesPanel
-            refs={auditRefs}
-            report={report}
-            activeRefId={activeRefId}
-            onRefClick={handleRefClick}
-          />
+          {showFullReport ? (
+            <div className="h-full overflow-y-auto">
+              <AuditReportView
+                report={report}
+                onReset={onReset}
+                sourceFile={sourceFile}
+              />
+            </div>
+          ) : (
+            <AuditReferencesPanel
+              refs={auditRefs}
+              report={report}
+              activeRefId={activeRefId}
+              onRefClick={handleRefClick}
+              sourceFile={sourceFile}
+            />
+          )}
         </div>
 
         {/* Colonne 3 : Tiroir de Chat contextuel interactif (Droite escamotable) */}

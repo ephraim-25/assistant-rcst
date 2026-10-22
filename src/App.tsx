@@ -16,6 +16,7 @@ import { ApaConverter } from './components/ApaConverter';
 import { AuditReportData } from './types/audit';
 import { AuditHistoryItem } from './types/governance';
 import { AlertCircle } from 'lucide-react';
+import { Toaster } from 'sonner';
 
 export type AppView = 
   | 'hub' 
@@ -34,6 +35,7 @@ function EditorialEnterpriseApp() {
   const [report, setReport] = useState<AuditReportData | null>(null);
   const [currentManuscriptText, setCurrentManuscriptText] = useState<string>('');
   const [currentSourceFilename, setCurrentSourceFilename] = useState<string>('Manuscrit_RCST.docx');
+  const [currentManuscriptFile, setCurrentManuscriptFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
@@ -50,13 +52,14 @@ function EditorialEnterpriseApp() {
   /**
    * Lancement d'un audit de manuscrit via le backend FastAPI
    */
-  const handleRunAudit = async (manuscriptText: string, sourceFilename?: string) => {
+  const handleRunAudit = async (manuscriptText: string, sourceFilename?: string, sourceFile?: File) => {
     if (!manuscriptText.trim()) return;
     setIsLoading(true);
     setError(null);
     const fname = sourceFilename || 'Manuscrit_001_Final.docx';
     setCurrentManuscriptText(manuscriptText);
     setCurrentSourceFilename(fname);
+    setCurrentManuscriptFile(sourceFile || null);
 
     try {
       const response = await apiFetch('/api/audit', {
@@ -111,6 +114,7 @@ function EditorialEnterpriseApp() {
   const handleLoadAuditFromHistory = (item: AuditHistoryItem) => {
     setCurrentManuscriptText(item.manuscriptText);
     setCurrentSourceFilename(item.sourceFilename);
+    setCurrentManuscriptFile(null); // Pas de fichier original depuis l'historique
     setReport(item.report);
     setActiveView('cockpit');
   };
@@ -118,12 +122,14 @@ function EditorialEnterpriseApp() {
   const handleReset = () => {
     setReport(null);
     setCurrentManuscriptText('');
+    setCurrentManuscriptFile(null);
     setActiveView('hub');
   };
 
   const handleNewAudit = () => {
     setReport(null);
     setCurrentManuscriptText('');
+    setCurrentManuscriptFile(null);
     setActiveView('hub');
   };
 
@@ -194,6 +200,7 @@ function EditorialEnterpriseApp() {
               isLoading={isLoading}
               onNavigateTab={(tab) => setActiveView(tab as AppView)}
               onLoadAuditFromHistory={handleLoadAuditFromHistory}
+              onSetFile={setCurrentManuscriptFile}
             />
           )}
 
@@ -203,6 +210,7 @@ function EditorialEnterpriseApp() {
               <EditorialCockpit
                 manuscriptText={currentManuscriptText}
                 sourceFilename={currentSourceFilename}
+                sourceFile={currentManuscriptFile}
                 report={report}
                 onReset={handleReset}
               />
@@ -269,6 +277,9 @@ function EditorialEnterpriseApp() {
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
       />
+
+      {/* ─── NOTIFICATIONS SONNER ─── */}
+      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }

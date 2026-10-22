@@ -7,12 +7,13 @@ import { SAMPLE_MANUSCRIPTS } from '../data/samples';
 import { AuditHistoryItem } from '../types/governance';
 
 interface CentralHubProps {
-  onAudit: (text: string, filename?: string) => Promise<void>;
+  onAudit: (text: string, filename?: string, sourceFile?: File) => Promise<void>;
   isLoading: boolean;
   onNavigateTab: (
     tab: 'hub' | 'cockpit' | 'reviewer-dashboard' | 'admin-dashboard' | 'constitution' | 'style' | 'apa'
   ) => void;
   onLoadAuditFromHistory?: (item: AuditHistoryItem) => void;
+  onSetFile?: (file: File | null) => void;
 }
 
 const MIN_CHARS = 50;
@@ -25,11 +26,12 @@ export const CentralHub: React.FC<CentralHubProps> = ({
   isLoading,
   onNavigateTab,
   onLoadAuditFromHistory,
+  onSetFile,
 }) => {
   const { user } = useAuth();
   const { historyItems } = useGovernance();
   const [text, setText] = useState('');
-  const [attachedFile, setAttachedFile] = useState<{ name: string; size: string; text?: string } | null>(null);
+  const [attachedFile, setAttachedFile] = useState<{ name: string; size: string; text?: string; file?: File } | null>(null);
   const [isReadingFile, setIsReadingFile] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -53,20 +55,23 @@ export const CentralHub: React.FC<CentralHubProps> = ({
 
     try {
       if (ext === 'txt' || ext === 'md' || ext === 'text') {
-        setAttachedFile({ name: file.name, size, text: await file.text() });
+        setAttachedFile({ name: file.name, size, text: await file.text(), file });
+        onSetFile?.(file);
       } else if (ext === 'docx' || ext === 'pdf' || ext === 'doc') {
         const formData = new FormData();
         formData.append('file', file);
         const res = await apiFetch('/api/extract-file', { method: 'POST', body: formData });
-        if (!res.ok) throw new Error('Le texte du document n’a pas pu être extrait.');
+        if (!res.ok) throw new Error('Le texte du document n\'a pas pu être extrait.');
         const data = await res.json();
-        setAttachedFile({ name: file.name, size, text: data.text });
+        setAttachedFile({ name: file.name, size, text: data.text, file });
+        onSetFile?.(file);
       } else {
         throw new Error('Format non pris en charge. Utilisez un fichier .docx, .pdf, .txt ou .md.');
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Le fichier n’a pas pu être lu.');
+      setErrorMsg(err.message || 'Le fichier n\'a pas pu être lu.');
       setAttachedFile(null);
+      onSetFile?.(null);
     } finally {
       setIsReadingFile(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -83,7 +88,7 @@ export const CentralHub: React.FC<CentralHubProps> = ({
       return;
     }
     setErrorMsg(null);
-    await onAudit(content, attachedFile?.name);
+    await onAudit(content, attachedFile?.name, attachedFile?.file);
   };
 
   // Ctrl/Cmd + Entrée lance l'audit ; Entrée seule garde son sens (saut de ligne),
@@ -98,6 +103,7 @@ export const CentralHub: React.FC<CentralHubProps> = ({
   const loadSample = (sample: (typeof SAMPLE_MANUSCRIPTS)[number]) => {
     setText(sample.text);
     setAttachedFile({ name: `${sample.id}.docx`, size: '—', text: sample.text });
+    onSetFile?.(null); // Pas de fichier réel pour les samples
     setErrorMsg(null);
   };
 
@@ -141,6 +147,7 @@ export const CentralHub: React.FC<CentralHubProps> = ({
               onClick={() => {
                 setAttachedFile(null);
                 setText('');
+                onSetFile?.(null);
               }}
               aria-label="Retirer le fichier"
               className="ml-auto grid h-6 w-6 place-items-center rounded text-slate-400 hover:bg-slate-800 hover:text-slate-100"

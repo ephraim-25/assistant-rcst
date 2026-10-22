@@ -8,6 +8,7 @@ interface AuditReferencesPanelProps {
   report: AuditReportData;
   activeRefId: number | null;
   onRefClick: (ref: AuditRef) => void;
+  sourceFile?: File | null;
 }
 
 /** Couleur du repère : la même que le surlignage du passage dans le manuscrit. */
@@ -31,6 +32,7 @@ export const AuditReferencesPanel: React.FC<AuditReferencesPanelProps> = ({
   report,
   activeRefId,
   onRefClick,
+  sourceFile,
 }) => {
   const activeCardRef = useRef<HTMLLIElement | null>(null);
 
