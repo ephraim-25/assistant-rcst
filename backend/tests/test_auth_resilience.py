@@ -84,6 +84,32 @@ class TestReadableErrors:
         assert "secret interne" not in r.text
 
 
+class TestJwtSecretHandling:
+    def test_ephemeral_dev_key_is_stable_so_sessions_work_without_secret(self, monkeypatch):
+        """Régression : sans JWT_SECRET_KEY (dev), un jeton émis doit rester valide à la requête suivante."""
+        monkeypatch.setattr(settings, "JWT_SECRET_KEY", "")
+        monkeypatch.delenv("VERCEL", raising=False)
+        token = _auth.create_access_token({"sub": "u1", "email": "a@b.cd", "role": "REVIEWER"})
+        assert _auth.decode_token(token)["sub"] == "u1"
+        assert settings.effective_jwt_secret == settings.effective_jwt_secret
+
+    def test_missing_secret_on_vercel_gives_readable_503(self, monkeypatch):
+        monkeypatch.setattr(settings, "JWT_SECRET_KEY", "")
+        monkeypatch.setenv("VERCEL", "1")
+        r = client.post("/api/auth/register", json=_payload(_email()))
+        assert r.status_code == 503
+        assert "JWT_SECRET_KEY" not in r.text
+
+    def test_health_lists_problems_on_vercel(self, monkeypatch):
+        monkeypatch.setattr(settings, "JWT_SECRET_KEY", "")
+        monkeypatch.setattr(settings, "ENVIRONMENT", "development")
+        monkeypatch.setenv("VERCEL", "1")
+        body = client.get("/api/health").json()
+        assert body["status"] == "degraded"
+        text = " ".join(body["problems"])
+        assert "ENVIRONMENT=production" in text and "JWT_SECRET_KEY" in text
+
+
 class TestAdminBootstrapResilience:
     def test_bootstrap_failure_does_not_break_the_request_and_is_retried(self, monkeypatch):
         calls = {"n": 0}

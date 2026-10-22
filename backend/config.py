@@ -1,11 +1,17 @@
 from pydantic_settings import BaseSettings
 from typing import List
 from pathlib import Path
+import os
 import secrets
 import sys
 
 # Résolution absolue du chemin vers backend/.env et .env racine
 BASE_DIR = Path(__file__).resolve().parent
+
+
+# Clé éphémère de développement : générée UNE fois par processus (et non à chaque appel,
+# sinon chaque jeton émis serait invalide dès la requête suivante).
+_EPHEMERAL_JWT_KEY: str = secrets.token_urlsafe(48)
 
 
 class ConfigError(RuntimeError):
@@ -54,6 +60,11 @@ class Settings(BaseSettings):
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
     @property
+    def on_serverless(self) -> bool:
+        """Vrai quand le code tourne sur Vercel (variable posée automatiquement par la plateforme)."""
+        return bool(os.getenv("VERCEL"))
+
+    @property
     def effective_jwt_secret(self) -> str:
         """
         Retourne la clé secrète JWT.
@@ -67,8 +78,14 @@ class Settings(BaseSettings):
                     "JWT_SECRET_KEY est vide en production. "
                     "Définissez la variable d'environnement JWT_SECRET_KEY (min 32 chars)."
                 )
-            # Dev : clé aléatoire éphémère (les tokens expirent au redémarrage)
-            return secrets.token_urlsafe(48)
+            if self.on_serverless:
+                # Sur Vercel, chaque instance aurait sa propre clé : les sessions échoueraient au hasard.
+                raise ConfigError(
+                    "JWT_SECRET_KEY est vide sur Vercel. "
+                    "Définissez la variable d'environnement JWT_SECRET_KEY (min 32 chars)."
+                )
+            # Dev local : clé éphémère stable pendant la vie du processus
+            return _EPHEMERAL_JWT_KEY
         if len(key) < 32:
             print(
                 f"[RCST] AVERTISSEMENT : JWT_SECRET_KEY trop courte ({len(key)} chars). "

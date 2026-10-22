@@ -127,10 +127,24 @@ async def health_check():
         _log.exception("Diagnostic base de données en échec")
 
     production = settings.ENVIRONMENT.lower() == "production"
+    deployed = production or settings.on_serverless
     jwt_ok = bool(settings.JWT_SECRET_KEY) and len(settings.JWT_SECRET_KEY) >= 32
-    healthy = db_info["ok"] and (jwt_ok or not production)
+
+    problems: list[str] = []
+    if not db_info["ok"]:
+        problems.append("La base de données ne répond pas (voir database.error et les journaux Vercel).")
+    if deployed and not production:
+        problems.append(f"ENVIRONMENT vaut « {settings.ENVIRONMENT} » : définir ENVIRONMENT=production dans Vercel.")
+    if deployed and not jwt_ok:
+        problems.append("JWT_SECRET_KEY absente ou trop courte (32 caractères minimum) : les connexions échouent.")
+    if deployed and not is_postgres():
+        problems.append("DATABASE_URL absente : SQLite ne fonctionne pas sur Vercel (disque en lecture seule).")
+    if deployed and not (settings.ADMIN_EMAIL and settings.ADMIN_PASSWORD):
+        problems.append("ADMIN_EMAIL / ADMIN_PASSWORD absents : aucun administrateur ne sera créé.")
+
     return {
-        "status": "healthy" if healthy else "degraded",
+        "status": "healthy" if not problems else "degraded",
+        "problems": problems,
         "service": "RCST Editorial Audit Engine",
         "hasGeminiKey": bool(settings.GEMINI_API_KEY),
         "environment": settings.ENVIRONMENT,
