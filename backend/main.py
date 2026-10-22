@@ -1,4 +1,6 @@
+import logging
 import os
+import sqlite3
 import io
 import re
 import unicodedata
@@ -21,7 +23,8 @@ if str(_CURRENT_DIR.parent) not in sys.path:
     sys.path.insert(0, str(_CURRENT_DIR.parent))
 
 try:
-    from .config import settings
+    from .config import settings, ConfigError
+    from .database import is_postgres
     from .extractor import extract_text_from_file
     from .audit_service import audit_manuscript_with_ai
     from .schemas import AuditRequest, AuditResponse, TextExtractionResponse
@@ -37,7 +40,8 @@ try:
     from .bib_checker import check_bibliography_concordance
     from .crossref_service import verify_reference_with_crossref, extract_doi_from_text
 except (ImportError, ValueError):
-    from config import settings
+    from config import settings, ConfigError
+    from database import is_postgres
     from extractor import extract_text_from_file
     from audit_service import audit_manuscript_with_ai
     from schemas import AuditRequest, AuditResponse, TextExtractionResponse
@@ -52,6 +56,12 @@ except (ImportError, ValueError):
     from pdf_reporter import generate_author_pdf, generate_editor_pdf
     from bib_checker import check_bibliography_concordance
     from crossref_service import verify_reference_with_crossref, extract_doi_from_text
+
+try:
+    import psycopg
+    DB_ERRORS: tuple = (psycopg.Error, sqlite3.Error)
+except ImportError:  # psycopg absent (développement SQLite)
+    DB_ERRORS = (sqlite3.Error,)
 
 app = FastAPI(
     title="RCST Editorial Compliance & Audit API",
@@ -104,14 +114,59 @@ def _generate_with_fallback(client, contents, config):
 
 @app.get("/api/health", tags=["Système"])
 async def health_check():
-    """Vérification de l'état du serveur backend."""
+    """
+    État du serveur et diagnostic de configuration (aucun secret n'est révélé).
+    Ouvrir /api/health dans un navigateur suffit pour voir ce qui manque en production.
+    """
+    db_info: dict = {"type": "postgresql" if is_postgres() else "sqlite", "ok": True, "error": None}
+    try:
+        get_user_db().count()
+    except Exception as exc:  # noqa: BLE001
+        db_info["ok"] = False
+        db_info["error"] = type(exc).__name__
+        _log.exception("Diagnostic base de données en échec")
+
+    production = settings.ENVIRONMENT.lower() == "production"
+    jwt_ok = bool(settings.JWT_SECRET_KEY) and len(settings.JWT_SECRET_KEY) >= 32
+    healthy = db_info["ok"] and (jwt_ok or not production)
     return {
-        "status": "healthy",
+        "status": "healthy" if healthy else "degraded",
         "service": "RCST Editorial Audit Engine",
         "hasGeminiKey": bool(settings.GEMINI_API_KEY),
         "environment": settings.ENVIRONMENT,
-        "version": "2.0.0"
+        "database": db_info,
+        "jwtConfigured": jwt_ok,
+        "adminBootstrapConfigured": bool(settings.ADMIN_EMAIL and settings.ADMIN_PASSWORD),
+        "version": "2.0.0",
     }
+
+
+# ─── Erreurs lisibles (le détail technique reste dans les journaux du serveur) ──
+_log = logging.getLogger("rcst")
+
+
+@app.exception_handler(ConfigError)
+async def config_error_handler(request, exc):
+    _log.error("Configuration incomplète : %s", exc)
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "Le service est mal configuré. Contactez l'administrateur de la plateforme."},
+    )
+
+
+@app.exception_handler(Exception)
+async def unexpected_error_handler(request, exc):
+    _log.exception("Erreur inattendue sur %s %s", request.method, request.url.path)
+    if isinstance(exc, DB_ERRORS):
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "Base de données momentanément indisponible. Réessayez dans un instant ; "
+                               "si le problème persiste, contactez l'administrateur."},
+        )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Erreur interne du serveur. Contactez l'administrateur si elle persiste."},
+    )
 
 
 # ═════════════════════════════════════════════════════════════════════════════

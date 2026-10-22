@@ -13,9 +13,9 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 try:
-    from .database import connect as connect_db
+    from .database import connect as connect_db, is_postgres
 except ImportError:
-    from database import connect as connect_db
+    from database import connect as connect_db, is_postgres
 
 
 # ─── Enums & Modèles Pydantic ─────────────────────────────────────────────────
@@ -97,7 +97,28 @@ class UserDB:
                     created_at      TEXT NOT NULL
                 )
             """)
+            if is_postgres():
+                self._migrate_is_active_to_boolean(conn)
             conn.commit()
+
+    @staticmethod
+    def _migrate_is_active_to_boolean(conn) -> None:
+        """
+        Les tables créées avant le 22 octobre ont `is_active INTEGER`. `CREATE TABLE IF NOT EXISTS`
+        ne les modifie pas, et l'insertion d'un booléen dans une colonne entière échoue
+        (inscription impossible, erreur 500). Migration idempotente vers BOOLEAN.
+        """
+        row = conn.execute(
+            "SELECT data_type FROM information_schema.columns "
+            "WHERE table_schema = current_schema() AND table_name = 'users' "
+            "AND column_name = 'is_active'"
+        ).fetchone()
+        if row and row["data_type"] != "boolean":
+            conn.execute("ALTER TABLE users ALTER COLUMN is_active DROP DEFAULT")
+            conn.execute(
+                "ALTER TABLE users ALTER COLUMN is_active TYPE BOOLEAN USING (is_active::int <> 0)"
+            )
+            conn.execute("ALTER TABLE users ALTER COLUMN is_active SET DEFAULT TRUE")
 
     # ── CRUD ──────────────────────────────────────────────────────────────────
 

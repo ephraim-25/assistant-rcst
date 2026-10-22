@@ -8,6 +8,10 @@ import sys
 BASE_DIR = Path(__file__).resolve().parent
 
 
+class ConfigError(RuntimeError):
+    """Configuration serveur incomplète (variable d'environnement manquante)."""
+
+
 class Settings(BaseSettings):
     # ── API IA ─────────────────────────────────────────────────────────────────
     GEMINI_API_KEY: str = ""
@@ -59,12 +63,10 @@ class Settings(BaseSettings):
         key = self.JWT_SECRET_KEY
         if not key:
             if self.ENVIRONMENT.lower() == "production":
-                print(
-                    "[RCST] ERREUR CRITIQUE : JWT_SECRET_KEY est vide en production. "
-                    "Définissez la variable d'environnement JWT_SECRET_KEY (min 32 chars).",
-                    file=sys.stderr
+                raise ConfigError(
+                    "JWT_SECRET_KEY est vide en production. "
+                    "Définissez la variable d'environnement JWT_SECRET_KEY (min 32 chars)."
                 )
-                sys.exit(1)
             # Dev : clé aléatoire éphémère (les tokens expirent au redémarrage)
             return secrets.token_urlsafe(48)
         if len(key) < 32:

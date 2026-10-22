@@ -91,14 +91,22 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=Fals
 
 # Instance partagée de la base utilisateurs
 _user_db: Optional[UserDB] = None
+_admin_bootstrapped = False
 
 
 def get_user_db() -> UserDB:
     """Injection de dépendance — retourne l'instance partagée UserDB."""
-    global _user_db
+    global _user_db, _admin_bootstrapped
     if _user_db is None:
         _user_db = UserDB(settings.SQLITE_DB_PATH)
-        bootstrap_admin(_user_db)
+    if not _admin_bootstrapped:
+        # Un échec ici ne doit jamais faire échouer la requête de l'utilisateur ; on réessaie à l'appel suivant.
+        try:
+            bootstrap_admin(_user_db)
+            _admin_bootstrapped = True
+        except Exception as exc:  # noqa: BLE001
+            print(f"[RCST] Création de l'administrateur de démarrage impossible : "
+                  f"{type(exc).__name__}: {exc}", file=sys.stderr)
     return _user_db
 
 
