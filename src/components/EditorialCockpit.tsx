@@ -166,6 +166,7 @@ export const EditorialCockpit: React.FC<EditorialCockpitProps> = ({
                 report={report}
                 onReset={onReset}
                 sourceFile={sourceFile}
+                manuscriptText={manuscriptText}
               />
             </div>
           ) : (

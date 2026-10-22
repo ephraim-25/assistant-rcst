@@ -14,6 +14,7 @@ from __future__ import annotations
 import re
 import sqlite3
 from typing import Any
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 try:
     from .config import settings
@@ -36,6 +37,37 @@ def split_statements(script: str) -> list[str]:
     return [s.strip() for s in no_comments.split(";") if s.strip()]
 
 
+def clean_postgres_url(raw_url: str) -> str:
+    """
+    Nettoie l'URL pour psycopg :
+    - Élimine les paramètres de requête non supportés par libpq (ex: pgbouncer=true)
+    - Adapte automatiquement le pooler Supabase eu-central-1 (aws-1 pour gernwybzwiirydblvjmi)
+    """
+    try:
+        parsed = urlparse(raw_url)
+        host = parsed.hostname or ""
+        if "gernwybzwiirydblvjmi" in raw_url and "aws-0-eu-central-1" in host:
+            host = host.replace("aws-0-eu-central-1", "aws-1-eu-central-1")
+
+        port_str = f":{parsed.port}" if parsed.port else ""
+        user_pass = ""
+        if parsed.username:
+            user_pass = parsed.username
+            if parsed.password:
+                user_pass += f":{parsed.password}"
+            user_pass += "@"
+        netloc = f"{user_pass}{host}{port_str}"
+
+        qs = parse_qs(parsed.query)
+        # Supprimer pgbouncer et autres paramètres spécifiques aux ORMs
+        qs.pop("pgbouncer", None)
+        qs.pop("schema", None)
+        new_query = urlencode(qs, doseq=True)
+        return urlunparse(parsed._replace(netloc=netloc, query=new_query))
+    except Exception:
+        return raw_url
+
+
 class PgConnection:
     """Connexion PostgreSQL éphémère (une par opération, adaptée au mode serverless)."""
 
@@ -43,9 +75,10 @@ class PgConnection:
         import psycopg
         from psycopg.rows import dict_row
 
+        cleaned_url = clean_postgres_url(url)
         # prepare_threshold=None : compatible avec le pooler « transaction » de Supabase (pgbouncer)
         self._conn = psycopg.connect(
-            url, row_factory=dict_row, prepare_threshold=None, connect_timeout=10
+            cleaned_url, row_factory=dict_row, prepare_threshold=None, connect_timeout=10
         )
 
     def execute(self, sql: str, params: Any = ()):

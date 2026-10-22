@@ -1,6 +1,6 @@
 """
 models.py — Modèles de données utilisateurs RCST
-Persistance SQLite thread-safe via sqlite3 + threading.Lock.
+Persistance SQLite / PostgreSQL thread-safe via database.connect + threading.Lock.
 """
 from __future__ import annotations
 
@@ -68,12 +68,12 @@ class LoginRequest(BaseModel):
     password: str
 
 
-# ─── Couche de persistance SQLite ────────────────────────────────────────────
+# ─── Couche de persistance Base de données ───────────────────────────────────
 
 class UserDB:
     """
-    Gestionnaire thread-safe de la table 'users' dans SQLite.
-    Créé une seule fois à l'import ; toutes les routes partagent la même instance.
+    Gestionnaire thread-safe de la table 'users'.
+    Compatible SQLite (développement) et PostgreSQL / Supabase (production).
     """
     _lock = threading.Lock()
 
@@ -93,7 +93,7 @@ class UserDB:
                     full_name       TEXT NOT NULL,
                     hashed_password TEXT NOT NULL,
                     role            TEXT NOT NULL DEFAULT 'REVIEWER',
-                    is_active       INTEGER NOT NULL DEFAULT 1,
+                    is_active       BOOLEAN NOT NULL DEFAULT TRUE,
                     created_at      TEXT NOT NULL
                 )
             """)
@@ -108,7 +108,7 @@ class UserDB:
                    (id, email, full_name, hashed_password, role, is_active, created_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 (user.id, user.email, user.full_name, user.hashed_password,
-                 user.role.value, int(user.is_active), user.created_at)
+                 user.role.value, user.is_active, user.created_at)
             )
             conn.commit()
         return user
@@ -141,7 +141,7 @@ class UserDB:
             UserPublic(
                 id=r["id"], email=r["email"], full_name=r["full_name"],
                 role=UserRole(r["role"]), is_active=bool(r["is_active"]),
-                created_at=r["created_at"]
+                created_at=str(r["created_at"])
             )
             for r in rows
         ]
@@ -157,7 +157,7 @@ class UserDB:
     def set_active(self, user_id: str, active: bool) -> bool:
         with self._lock, self._connect() as conn:
             cur = conn.execute(
-                "UPDATE users SET is_active = ? WHERE id = ?", (int(active), user_id)
+                "UPDATE users SET is_active = ? WHERE id = ?", (active, user_id)
             )
             conn.commit()
         return cur.rowcount > 0
@@ -165,14 +165,15 @@ class UserDB:
     def deactivate(self, user_id: str) -> bool:
         with self._lock, self._connect() as conn:
             cur = conn.execute(
-                "UPDATE users SET is_active = 0 WHERE id = ?", (user_id,)
+                "UPDATE users SET is_active = ? WHERE id = ?", (False, user_id)
             )
             conn.commit()
         return cur.rowcount > 0
 
     def count(self) -> int:
         with self._lock, self._connect() as conn:
-            return conn.execute("SELECT COUNT(*) AS n FROM users").fetchone()["n"]
+            row = conn.execute("SELECT COUNT(*) AS n FROM users").fetchone()
+            return row["n"] if row else 0
 
     @staticmethod
     def _row_to_user(row) -> UserInDB:
@@ -183,5 +184,5 @@ class UserDB:
             hashed_password=row["hashed_password"],
             role=UserRole(row["role"]),
             is_active=bool(row["is_active"]),
-            created_at=row["created_at"],
+            created_at=str(row["created_at"]),
         )

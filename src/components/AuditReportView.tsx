@@ -22,7 +22,7 @@ import {
   File,
   Send
 } from 'lucide-react';
-import { AuditReportData } from '../types/audit';
+import { AuditReportData, ConcordanceReport, CrossrefVerificationResult } from '../types/audit';
 import { apiFetch } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
@@ -31,9 +31,10 @@ interface AuditReportViewProps {
   report: AuditReportData;
   onReset: () => void;
   sourceFile?: File | null;
+  manuscriptText?: string;
 }
 
-export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onReset, sourceFile }) => {
+export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onReset, sourceFile, manuscriptText }) => {
   const { user } = useAuth();
   const [copiedMd, setCopiedMd] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -41,6 +42,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
     abstractAndKeywords: true,
     imradAndStructure: true,
     citationsAndReferences: true,
+    concordance: true,
     style: true,
     priority: true,
     board: true,
@@ -51,6 +53,12 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
   const [isDownloadingEditorPdf, setIsDownloadingEditorPdf] = useState(false);
   const [isTransmitting, setIsTransmitting] = useState(false);
   const [isTransmitModalOpen, setIsTransmitModalOpen] = useState(false);
+
+  // Concordance & CrossRef state
+  const [concordanceData, setConcordanceData] = useState<ConcordanceReport | null>(null);
+  const [isCheckingConcordance, setIsCheckingConcordance] = useState(false);
+  const [crossrefResults, setCrossrefResults] = useState<Map<string, CrossrefVerificationResult>>(new Map());
+  const [isVerifyingCrossref, setIsVerifyingCrossref] = useState(false);
 
   const toggleSection = (id: string) => {
     setExpandedSections((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -222,6 +230,58 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
       setIsTransmitting(false);
     }
   };
+
+  const checkConcordance = async (manuscriptText: string) => {
+    setIsCheckingConcordance(true);
+    try {
+      const response = await apiFetch('/api/citations/check-concordance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manuscriptText }),
+      });
+      
+      if (!response.ok) throw new Error('Erreur lors de la vérification de concordance');
+      
+      const data = await response.json();
+      setConcordanceData(data);
+      toast.success('Concordance vérifiée');
+    } catch (error) {
+      toast.error('Erreur lors de la vérification de concordance');
+    } finally {
+      setIsCheckingConcordance(false);
+    }
+  };
+
+  const verifyCrossref = async (reference: string) => {
+    setIsVerifyingCrossref(true);
+    try {
+      const response = await apiFetch('/api/citations/verify-crossref', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reference }),
+      });
+      
+      if (!response.ok) throw new Error('Erreur lors de la vérification CrossRef');
+      
+      const data: CrossrefVerificationResult = await response.json();
+      setCrossrefResults(prev => new Map(prev).set(reference, data));
+    } catch (error) {
+      toast.error('Erreur lors de la vérification CrossRef');
+    } finally {
+      setIsVerifyingCrossref(false);
+    }
+  };
+
+  // Load concordance data when component mounts with manuscript text
+  React.useEffect(() => {
+    const loadConcordance = async () => {
+      if (report.sections.citationsAndReferences) {
+        // Use the manuscript text from the report if available, or from props
+        // For now, we'll trigger it manually via a button
+      }
+    };
+    loadConcordance();
+  }, [report]);
 
   const { titleAndAuthors, abstractAndKeywords, imradAndStructure, citationsAndReferences, style } = report.sections;
 
@@ -788,7 +848,220 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
             )}
           </div>
 
-          {/* 2.6 Style Impersonnel */}
+          {/* 2.6 Concordance Bibliographique & CrossRef (B5 & B6) */}
+          <div className="bg-slate-950/60 border border-slate-850 rounded-md overflow-hidden print:border-black">
+            <button
+              onClick={() => toggleSection('concordance')}
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/60 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-sky-950 border border-sky-800 text-sky-400 font-mono text-xs flex items-center justify-center font-bold">
+                  2.6
+                </span>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-100 print:text-black">Concordance Bibliographique & CrossRef</h4>
+                  <div className="flex flex-wrap gap-2 text-xs text-slate-400 mt-0.5">
+                    <span>Citations orphelines</span>
+                    <span>•</span>
+                    <span>Références non citées</span>
+                    <span>•</span>
+                    <span>Tri alphabétique APA 7</span>
+                    <span>•</span>
+                    <span>Vérification DOI CrossRef</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className={`text-xs font-mono font-semibold px-2 py-0.5 rounded ${
+                  concordanceData?.alphabeticalOrderCompliant ? 'bg-emerald-950 text-emerald-400' : 'bg-amber-950 text-amber-400'
+                }`}>
+                  {concordanceData ? (concordanceData.alphabeticalOrderCompliant ? 'OK' : 'À vérifier') : '--'}
+                </span>
+                {expandedSections.concordance ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+              </div>
+            </button>
+
+            {expandedSections.concordance && (
+              <div className="p-4 pt-0 border-t border-slate-850/80 space-y-3 text-xs leading-relaxed">
+                {/* Bouton pour lancer la vérification */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      if (manuscriptText) {
+                        checkConcordance(manuscriptText);
+                      } else {
+                        toast.error('Texte du manuscrit non disponible');
+                      }
+                    }}
+                    disabled={isCheckingConcordance}
+                    className="h-10 min-w-[40px] px-3.5 rounded-lg bg-sky-900/50 hover:bg-sky-900/70 text-sky-200 flex items-center gap-1.5 text-xs font-medium border border-sky-800/60 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isCheckingConcordance ? (
+                      <>
+                        <span className="w-3.5 h-3.5 animate-spin border-2 border-sky-400 border-t-transparent rounded-full" />
+                        Vérification...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-3.5 h-3.5" />
+                        Vérifier la concordance
+                      </>
+                    )}
+                  </button>
+                  <span className="text-slate-500">Analyse les citations in-text et la bibliographie</span>
+                </div>
+
+                {concordanceData && (
+                  <>
+                    {/* Citations orphelines */}
+                    {concordanceData.orphanCitations.length > 0 && (
+                      <div className="p-3 bg-rose-950/20 border border-rose-900/40 rounded-lg text-rose-200">
+                        <div className="font-semibold text-rose-400 mb-2 flex items-center gap-1.5">
+                          <AlertTriangle className="w-3.5 h-3.5" /> Citations orphelines ({concordanceData.orphanCitations.length})
+                        </div>
+                        <p className="text-slate-400 mb-2">Citations dans le texte sans entrée bibliographique correspondante :</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          {concordanceData.orphanCitations.map((citation, i) => (
+                            <li key={i} className="font-mono text-rose-300">{citation}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Références non citées */}
+                    {concordanceData.uncitedReferences.length > 0 && (
+                      <div className="p-3 bg-amber-950/20 border border-amber-900/40 rounded-lg text-amber-200">
+                        <div className="font-semibold text-amber-400 mb-2 flex items-center gap-1.5">
+                          <AlertCircle className="w-3.5 h-3.5" /> Références non citées ({concordanceData.uncitedReferences.length})
+                        </div>
+                        <p className="text-slate-400 mb-2">Entrées bibliographiques jamais appelées dans le texte :</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          {concordanceData.uncitedReferences.map((ref, i) => (
+                            <li key={i} className="font-mono text-amber-300">{ref}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Tri alphabétique */}
+                    <div className={`p-3 rounded-lg border ${
+                      concordanceData.alphabeticalOrderCompliant 
+                        ? 'bg-emerald-950/20 border-emerald-900/40 text-emerald-200' 
+                        : 'bg-rose-950/20 border-rose-900/40 text-rose-200'
+                    }`}>
+                      <div className="font-semibold mb-2 flex items-center gap-1.5">
+                        {concordanceData.alphabeticalOrderCompliant ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        ) : (
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                        )}
+                        Tri alphabétique APA 7
+                      </div>
+                      <p className="text-slate-400">
+                        {concordanceData.alphabeticalOrderCompliant 
+                          ? 'La bibliographie respecte l\'ordre alphabétique APA 7.' 
+                          : 'La bibliographie n\'est pas triée correctement par ordre alphabétique.'}
+                      </p>
+                      {!concordanceData.alphabeticalOrderCompliant && concordanceData.alphabeticalOrderViolations.length > 0 && (
+                        <ul className="list-disc list-inside space-y-1 mt-2">
+                          {concordanceData.alphabeticalOrderViolations.map((violation, i) => (
+                            <li key={i} className="font-mono text-rose-300">{violation}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    {/* Statistiques */}
+                    <div className="grid grid-cols-2 gap-3 p-3 bg-slate-900 rounded-lg border border-slate-800">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-slate-100">{concordanceData.totalCitationsInText}</div>
+                        <div className="text-xs text-slate-400">Citations in-text</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-slate-100">{concordanceData.totalReferencesInBiblio}</div>
+                        <div className="text-xs text-slate-400">Références biblio</div>
+                      </div>
+                    </div>
+
+                    {/* Vérification CrossRef pour chaque référence */}
+                    {concordanceData.uncitedReferences.length === 0 && concordanceData.orphanCitations.length === 0 && (
+                      <div className="space-y-2">
+                        <div className="font-semibold text-sky-400 flex items-center gap-1.5">
+                          <FileText className="w-3.5 h-3.5" /> Vérification DOI CrossRef
+                        </div>
+                        <p className="text-slate-400">Cliquez sur une référence pour vérifier son existence dans le registre mondial CrossRef.</p>
+                        <div className="space-y-2">
+                          {citationsAndReferences.flaggedCitations?.map((item, idx) => (
+                            <div key={idx} className="flex items-start gap-2 p-2 bg-slate-900 rounded border border-slate-800">
+                              <span className="text-xs font-mono text-slate-300 flex-1">{item.correctedApa7}</span>
+                              <button
+                                onClick={() => verifyCrossref(item.correctedApa7)}
+                                disabled={isVerifyingCrossref}
+                                className="h-8 min-w-[32px] px-2 rounded bg-sky-900/50 hover:bg-sky-900/70 text-sky-200 text-xs font-medium border border-sky-800/60 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                              >
+                                {isVerifyingCrossref ? (
+                                  <span className="w-3 h-3 animate-spin border-2 border-sky-400 border-t-transparent rounded-full" />
+                                ) : (
+                                  'Vérifier'
+                                )}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Affichage des résultats CrossRef */}
+                        {Array.from(crossrefResults.entries()).map(([ref, result]) => (
+                          <div key={ref} className={`p-3 rounded-lg border ${
+                            result.isFound 
+                              ? 'bg-emerald-950/20 border-emerald-900/40 text-emerald-200' 
+                              : 'bg-amber-950/20 border-amber-900/40 text-amber-200'
+                          }`}>
+                            <div className="font-semibold mb-1 flex items-center gap-1.5">
+                              {result.isFound ? (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                              ) : (
+                                <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                              )}
+                              {result.isFound ? 'Référence trouvée' : 'À vérifier'}
+                            </div>
+                            <div className="text-xs text-slate-400 mb-1">{ref}</div>
+                            {result.isFound ? (
+                              <div className="space-y-1 text-xs">
+                                {result.verifiedTitle && <div><span className="text-slate-500">Titre :</span> {result.verifiedTitle}</div>}
+                                {result.verifiedYear && <div><span className="text-slate-500">Année :</span> {result.verifiedYear}</div>}
+                                {result.verifiedContainer && <div><span className="text-slate-500">Revue :</span> {result.verifiedContainer}</div>}
+                                {result.doi && <div><span className="text-slate-500">DOI :</span> {result.doi}</div>}
+                                {result.divergences.length > 0 && (
+                                  <div className="mt-2 p-2 bg-amber-950/30 rounded border border-amber-900/30">
+                                    <div className="font-semibold text-amber-400">Divergences :</div>
+                                    {result.divergences.map((div, i) => (
+                                      <div key={i} className="text-amber-300">{div}</div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="text-xs text-amber-300">
+                                {result.divergences.length > 0 ? result.divergences[0] : 'Référence non trouvée dans le registre mondial CrossRef. À vérifier manuellement.'}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {!concordanceData && !isCheckingConcordance && (
+                  <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 text-slate-400 text-center">
+                    Cliquez sur « Vérifier la concordance » pour analyser les citations et références.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 2.7 Style Impersonnel */}
           <div className="bg-slate-950/60 border border-slate-850 rounded-md overflow-hidden print:border-black">
             <button
               onClick={() => toggleSection('style')}
@@ -796,7 +1069,7 @@ export const AuditReportView: React.FC<AuditReportViewProps> = ({ report, onRese
             >
               <div className="flex items-center gap-3">
                 <span className="w-8 h-8 rounded-lg bg-sky-950 border border-sky-800 text-sky-400 font-mono text-xs flex items-center justify-center font-bold">
-                  2.6
+                  2.7
                 </span>
                 <div>
                   <h4 className="text-sm font-bold text-slate-100 print:text-black">Style Impersonnel (Proscription de « nous », « je », « nos travaux »)</h4>

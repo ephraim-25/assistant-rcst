@@ -104,3 +104,27 @@ export interface AuditReportData {
   referenceId?: string;
   timestamp?: string;
 }
+
+// ─── Types pour Concordance Bibliographique (B5) ───────────────────────────────
+
+export interface ConcordanceReport {
+  orphanCitations: string[];
+  uncitedReferences: string[];
+  alphabeticalOrderCompliant: boolean;
+  alphabeticalOrderViolations: string[];
+  totalCitationsInText: number;
+  totalReferencesInBiblio: number;
+}
+
+// ─── Types pour CrossRef Verification (B6) ───────────────────────────────────────
+
+export interface CrossrefVerificationResult {
+  query: string;
+  doi: string | null;
+  isFound: boolean;
+  verifiedTitle: string | null;
+  verifiedYear: string | null;
+  verifiedContainer: string | null;
+  divergences: string[];
+  score: number;
+}
